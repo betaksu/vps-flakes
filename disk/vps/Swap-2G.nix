@@ -2,14 +2,12 @@
 {
   imports = [
     disko.nixosModules.disko
-    ./boot.nix
+    ../boot.nix
   ];
 
   disko.devices.disk.main = {
     # 这里指定生成的 raw 文件初始大小。
-    # 建议设置为 4G 或 5G (或者 3G，只要能装下你的 Nix Store 即可)。
-    # 这样生成的 .raw 文件很小，上传到 VPS 后，启动时会自动扩容到 VPS 实际硬盘大小。
-    imageSize = "11G";
+    imageSize = "5G";
 
     device = "/dev/sda";
     content = {
@@ -24,7 +22,7 @@
         # 1. ESP 分区
         ESP = {
           priority = 1;
-          size = "64M";
+          size = "32M";
           type = "EF00";
           content = {
             type = "filesystem";
@@ -37,7 +35,7 @@
         # 2. Swap 分区
         swap = {
           priority = 2;
-          size = "8G";
+          size = "2G";
           content = {
             type = "swap";
             discardPolicy = "both";

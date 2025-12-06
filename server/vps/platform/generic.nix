@@ -1,8 +1,13 @@
 # 编辑此配置文件以定义系统安装内容
 # 帮助文档：man configuration.nix 或 nixos-help
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, modulesPath, ... }:
 
 {
+  imports = [
+    # 引入 QEMU Guest 支持 (包含 virtio 驱动，对 VPS 很重要)
+    "${modulesPath}/profiles/qemu-guest.nix"
+  ];
+
   # 启用实验性功能 (Flakes 和 nix-command)
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   

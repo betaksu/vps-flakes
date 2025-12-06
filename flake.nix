@@ -28,7 +28,8 @@
         
         modules = [
           ./server/vps/hosts/tohu.nix
-          ./disk-config/Swap-2G.nix
+          ./disk/vps/Swap-2G.nix
+          ./disk/auto-resize.nix
         ];
       };
       hyperv = nixpkgs.lib.nixosSystem {
@@ -43,7 +44,8 @@
         
         modules = [
           ./server/vps/hosts/hyperv.nix
-          ./disk-config/Swap-8G.nix
+          ./disk/vps/Swap-4G.nix
+          ./disk/auto-resize.nix
         ];
       };
     };

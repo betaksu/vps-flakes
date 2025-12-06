@@ -6,7 +6,6 @@
   imports =
     [
       ../platform/generic.nix
-      ../platform/auto-resize.nix
       ../auth/default.nix
       nixos-facter-modules.nixosModules.facter
     ];
