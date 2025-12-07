@@ -22,15 +22,14 @@ let
       inherit system;
       specialArgs = {
         inherit inputs diskDevice disko nixos-facter-modules;
-        inherit pkgs;
       };
       modules = [
         ./vps/disk/auto-resize.nix
         nixos-facter-modules.nixosModules.facter
-        ({ modulesPath, ... }: {
-          imports = [ (modulesPath + "/misc/nixpkgs/read-only.nix") ];
+        pkgSrc.nixosModules.readOnlyPkgs
+        {
           nixpkgs.pkgs = pkgs;
-        })
+        }
       ] ++ extraModules;
     };
 in
