@@ -10,16 +10,6 @@
     priority = 100;        # 优先级设为 100 (高于默认的磁盘 Swap)
   };
 
-  # 2. 添加物理 Swap 文件 (作为保命的二级 Swap)
-  # 1GB 内存建议给 2GB-4GB 的 Swap 文件，防止 nixos-rebuild 爆内存
-  swapDevices = [
-    {
-      device = "/var/lib/swapfile";
-      size = 2048; # 2GB
-      priority = 0; # 优先级较低，只有 ZRAM 满了才会用它
-    }
-  ];
-
   # 3. 关键内核参数优化 (针对 1GB 内存特调)
   boot.kernel.sysctl = {
     # 更加积极地使用 Swap (ZRAM)。
