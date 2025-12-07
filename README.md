@@ -1,5 +1,7 @@
 # NixOS 部署与安装指南
 
+> **Note**: 当前库是个人配置文件库。若希望寻找模板库方便配置 NixOS，请前往 [https://github.com/ShaoG-R/nixos-config-template](https://github.com/ShaoG-R/nixos-config-template)。
+
 本指南提供了多种安装 NixOS 的方式。请根据你的具体环境（VPS、物理机、已有 Linux 系统等）选择合适的方法。
 
 在该配置库中，我们将使用环境变量来代替非固定的参数（如主机名、IP地址等），以便于理解和替换。
