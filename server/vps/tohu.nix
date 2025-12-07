@@ -1,7 +1,8 @@
 # file: server/vps/tohu.nix
-{ mkSystem }:
+{ mkSystem, pkgSrc }:
 
 mkSystem {
+  inherit pkgSrc;
   system = "x86_64-linux";
   diskDevice = "/dev/sda";
   extraModules = [
