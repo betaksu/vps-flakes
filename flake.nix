@@ -28,21 +28,36 @@
         modules = [
           # 基础模块
           ./disk/auto-resize.nix
+          nixos-facter-modules.nixosModules.facter
         ] ++ extraModules;
       };
     in
     {
       nixosConfigurations = {
-        
-        # x86_64 机器
         tohu = mkSystem {
           system = "x86_64-linux";
           diskDevice = "/dev/sda";
           extraModules = [
-            ./server/vps/hosts/tohu.nix
+            ./server/vps/platform/generic.nix
+            (import ./server/vps/auth/default.nix {
+              # 注意：这是 "initial" 密码，仅在第一次部署时生效。
+              # 以后如果你用 passwd 命令改了密码，这个配置不会覆盖它（这是为了安全性）。
+              # 使用 nix run nixpkgs#mkpasswd -- -m sha-512 生成密码
+              initialHashedPassword = "$6$DhwUDApjyhVCtu4H$mr8WIUeuNrxtoLeGjrMqTtp6jQeQIBuWvq/.qv9yKm3T/g5794hV.GhG78W2rctGDaibDAgS9X9I9FuPndGC01";
+              
+              authorizedKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBaNS9FByCEaDjPOUpeQZg58zM2wD+jEY6SkIbE1k3Zn ed25519 256-20251206 shaog@duck.com" ];
+            })
+            (import ./server/vps/network/static-ipv4.nix {
+                interface = "eth0";
+                address = "66.235.104.29";
+                prefixLength = 24;
+                gateway = "66.235.104.1";
+            })
             ./disk/vps/Swap-2G.nix
             {
               networking.hostName = "tohu";
+              facter.reportPath = ./facter/tohu.json;
+              system.stateVersion = "25.11";
             }
           ];
         };
@@ -51,23 +66,24 @@
           system = "x86_64-linux";
           diskDevice = "/dev/sda";
           extraModules = [
-            ./server/vps/hosts/hyperv.nix
+            ./server/vps/platform/generic.nix
+            (import ./server/vps/auth/permit_passwd.nix {
+              # 注意：这是 "initial" 密码，仅在第一次部署时生效。
+              # 以后如果你用 passwd 命令改了密码，这个配置不会覆盖它（这是为了安全性）。
+              # 使用 nix run nixpkgs#mkpasswd -- -m sha-512 生成密码
+              initialHashedPassword = "$6$DhwUDApjyhVCtu4H$mr8WIUeuNrxtoLeGjrMqTtp6jQeQIBuWvq/.qv9yKm3T/g5794hV.GhG78W2rctGDaibDAgS9X9I9FuPndGC01";
+              
+              authorizedKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBaNS9FByCEaDjPOUpeQZg58zM2wD+jEY6SkIbE1k3Zn ed25519 256-20251206 shaog@duck.com" ];
+            })
+            (import ./server/vps/network/dhcp.nix)
             ./disk/vps/Swap-4G.nix
             {
               networking.hostName = "hyperv";
+              facter.reportPath = ./facter/hyperv.json;
+              system.stateVersion = "25.11"; 
             }
           ];
         };
-
-        # ARM 机器
-        # raspi = mkSystem {
-        #   system = "aarch64-linux";
-        #   diskDevice = "/dev/sda";
-        #   extraModules = [
-        #     ./server/vps/hosts/raspi.nix
-        #     ./disk/pi/sd-card.nix
-        #   ];
-        # };
       };
     };
 }
