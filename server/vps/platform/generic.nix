@@ -20,18 +20,8 @@
   # 每次构建时自动去重存储池以节省空间
   nix.settings.auto-optimise-store = true;
 
-  # --- Podman 容器配置 ---
-  virtualisation.podman = {
-    enable = true;
-    # Docker 兼容模式 (创建 docker.sock 别名，适配 docker-compose 等工具)
-    dockerCompat = true;
-    # 启用容器间 DNS 解析 (支持容器名互访)
-    defaultNetwork.settings.dns_enabled = true;
-  };
-
   # 安装系统级常用工具
   environment.systemPackages = with pkgs; [
-    podman-compose
     git        
   ];
 

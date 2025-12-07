@@ -9,6 +9,7 @@ mkSystem {
     ./platform/generic.nix
     ./kernel/xanmod.nix
     ./profiles/memory/conservative.nix
+    ./software/container/podman.nix
     (import ./profiles/update/auto-upgrade.nix { allowReboot = true; })
     (import ./disk/common.nix { swapSize = 4096; })
     (import ./auth/permit_passwd.nix {
