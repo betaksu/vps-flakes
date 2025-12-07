@@ -27,6 +27,10 @@ let
       modules = [
         ./vps/disk/auto-resize.nix
         nixos-facter-modules.nixosModules.facter
+        ({ modulesPath, ... }: {
+          imports = [ (modulesPath + "/misc/nixpkgs/read-only.nix") ];
+          nixpkgs.pkgs = pkgs;
+        })
       ] ++ extraModules;
     };
 in
