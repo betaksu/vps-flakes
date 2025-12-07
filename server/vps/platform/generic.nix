@@ -20,26 +20,7 @@
   # --- SSH 服务 ---
   services.openssh.enable = true;
   
-  # --- 自动更新配置 ---
-  system.autoUpgrade = {
-    enable = true;
-    dates = "04:00"; # 每天凌晨 4 点执行
-    
-    # 指定 Flake URI
-    flake = "file:///etc/nixos#${config.networking.hostName}";
-    
-    # 强制更新 nixpkgs input 以获取新软件版本
-    flags = [
-      "--update-input"
-      "nixpkgs"
-      "-L" # 打印构建日志
-    ];
-    
-    # 更新后允许重启 (VPS 建议设为 false 防止服务中断)
-    allowReboot = true;
-    # 随机延迟 10 分钟重启，避免由于定时任务导致的并发高峰
-    randomizedDelaySec = "10min";
-  };
+
 
   # --- 垃圾回收与存储优化 ---
   nix.gc = {

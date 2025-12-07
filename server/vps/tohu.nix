@@ -7,6 +7,7 @@ mkSystem {
   diskDevice = "/dev/sda";
   extraModules = [
     ./platform/generic.nix
+    (import ./profiles/auto-upgrade.nix { allowReboot = true; })
     (import ./disk/common.nix { swapSize = 2048; })
     (import ./auth/default.nix {
       initialHashedPassword = "$6$DhwUDApjyhVCtu4H$mr8WIUeuNrxtoLeGjrMqTtp6jQeQIBuWvq/.qv9yKm3T/g5794hV.GhG78W2rctGDaibDAgS9X9I9FuPndGC01";
