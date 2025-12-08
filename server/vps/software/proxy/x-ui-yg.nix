@@ -40,6 +40,9 @@
         ];
         environment = {
           TZ = "Asia/Shanghai";
+           # 留空则随机生成 (建议首次运行查看日志获取，更安全)
+          XUI_USER = username;
+          XUI_PASS = password;
           XUI_PORT = "54321";
         };
         autoStart = true;
