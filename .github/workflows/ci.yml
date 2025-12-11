@@ -29,10 +29,7 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
-            download-buffer-size = 268435456
-
-      - name: Setup Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+            download-buffer-size = 1073741824
 
       - name: Build System Toplevel
         # 这一步只编译不运行，确保语法和依赖没问题
@@ -40,7 +37,6 @@ jobs:
 
   # 任务 2: 动态虚拟机测试 (运行 QEMU 验证服务启动)
   integration-tests:
-    needs: check-configuration # 可选：如果你希望构建失败就不跑测试，可以加上这就行；去掉则并行跑，速度更快
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -51,12 +47,9 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
-            download-buffer-size = 268435456
+            download-buffer-size = 1073741824
             # 确保 Nix 知道我们可以用 KVM
-            system-features = kvm big-parallel
-
-      - name: Setup Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v13
+            system-features = kvm big-parallel nixos-test
 
       # 关键步骤：确保 Runner 能够使用硬件虚拟化加速
       # 如果没有这一步，虚拟机测试会极慢（纯软件模拟）
@@ -71,3 +64,19 @@ jobs:
         # 运行 flake.nix 中定义的 checks
         # --print-build-logs 非常重要，如果测试挂了，你能看到 Python 脚本的报错输出
         run: nix flake check --accept-flake-config --print-build-logs
+
+  # 任务 3: 聚合测试结果 (用于 Branch Protection Rule)
+  ci-success:
+    needs: 
+      - check-configuration
+      - integration-tests
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Status
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more jobs failed or were cancelled."
+            exit 1
+          fi
+          echo "All jobs passed."

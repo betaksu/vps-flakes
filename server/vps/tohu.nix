@@ -37,7 +37,7 @@ let
           overlays = [ inputs.chaotic.overlays.default ];
         };
       in {
-        imports = baseModules ++ appModules ++ [
+        imports = baseModules ++ [
           (import ./kernel/cachyos-unstable.nix { 
             pkgs = pkgsWithChaotic; 
             inherit inputs; 
