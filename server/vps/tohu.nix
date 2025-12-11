@@ -7,7 +7,7 @@ mkSystem {
   diskDevice = "/dev/sda";
   extraModules = [
     ./platform/generic.nix
-    ./kernel/cachyos.nix
+    ./kernel/cachyos-unstable.nix
     ./services/dns/smartdns-oversea.nix
     ./services/web/nginx.nix
     ./profiles/memory/aggressive.nix
