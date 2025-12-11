@@ -2,16 +2,13 @@
 { config, pkgs, lib, ... }:
 
 {
-  # 自动升级依赖于本地的 flake 副本
-  system.copyFlakeToNixos.enable = lib.mkDefault true;
-
   # --- 自动更新配置 ---
   system.autoUpgrade = {
     enable = true;
     dates = "04:00"; # 每天凌晨 4 点执行
     
     # 指定 Flake URI
-    flake = "path:/etc/nixos#${config.networking.hostName}";
+    flake = "github:ShaoG-R/nixos-config";
     
     # 强制更新所有 input以获取新软件
     flags = [
