@@ -39,7 +39,7 @@ let
       in {
         # 3. 导入模块，并显式传入我们构建好的 pkgsWithChaotic
         # 这样 cachyos-unstable.nix 就能找到 linuxPackages_cachyos 了
-        imports = serviceModules ++ [
+        imports = baseModules ++ appModules ++ [
           (import ./kernel/cachyos-unstable.nix { 
             pkgs = pkgsWithChaotic; 
             inherit inputs; 
