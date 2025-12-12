@@ -23,12 +23,18 @@ jobs:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
             download-buffer-size = 1073741824
+
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: chaotic-nyx
+          skipPush: true
     
       - name: Update flake.lock
         run: |
-          nix flake update --accept-flake-config
-          nix flake update --accept-flake-config ./vps/tohu
-          nix flake update --accept-flake-config ./vps/hyperv
+          nix flake update
+          nix flake update ./vps/tohu
+          nix flake update ./vps/hyperv
 
       - name: Create Pull Request
         id: cpr

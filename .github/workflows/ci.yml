@@ -31,9 +31,15 @@ jobs:
           extra_nix_config: |
             download-buffer-size = 1073741824
 
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: chaotic-nyx
+          skipPush: true
+
       - name: Build System Toplevel
         # 这一步只编译不运行，确保语法和依赖没问题
-        run: nix build --accept-flake-config ./vps/${{ matrix.host }}#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
+        run: nix build ./vps/${{ matrix.host }}#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
 
   # 任务 2: 动态虚拟机测试 (运行 QEMU 验证服务启动)
   integration-tests:
@@ -54,6 +60,12 @@ jobs:
             # 确保 Nix 知道我们可以用 KVM
             system-features = kvm big-parallel nixos-test
 
+      - name: Setup Cachix
+        uses: cachix/cachix-action@v15
+        with:
+          name: chaotic-nyx
+          skipPush: true
+
       # 关键步骤：确保 Runner 能够使用硬件虚拟化加速
       # 如果没有这一步，虚拟机测试会极慢（纯软件模拟）
       - name: Enable KVM group perms
@@ -66,7 +78,7 @@ jobs:
       - name: Run NixOS Integration Tests
         # 运行 Host Flake 中定义的 inline vmTest
         # --print-build-logs 非常重要，如果测试挂了，你能看到 Python 脚本的报错输出
-        run: nix build -L --accept-flake-config --print-build-logs ./vps/${{ matrix.host }}#nixosConfigurations.${{ matrix.host }}.config.system.build.vmTest
+        run: nix build -L --print-build-logs ./vps/${{ matrix.host }}#nixosConfigurations.${{ matrix.host }}.config.system.build.vmTest
 
   # 任务 3: 聚合测试结果 (用于 Branch Protection Rule)
   ci-success:
