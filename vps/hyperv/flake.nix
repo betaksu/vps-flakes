@@ -3,7 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    my-lib.url = "git+file://../../";
+    my-lib.url = "path:../../";
     my-lib.inputs.nixpkgs.follows = "nixpkgs";
   };
 
