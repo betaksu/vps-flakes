@@ -41,7 +41,7 @@
   {
     nixosConfigurations.tohu = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inputs = my-lib.inputs; };
+      specialArgs = { inputs = my-lib.inputs; isTest = false; };
       modules = [
         # 1. 引入我们的模块库
         my-lib.nixosModules.default
