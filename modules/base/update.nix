@@ -31,9 +31,7 @@ in {
       # 指定 Flake URI
       flake = cfg.flakeUri;
       
-      # 强制更新所有 input以获取新软件
       flags = [
-        "--recreate-lock-file"
         "-L" # 打印构建日志
       ];
       
