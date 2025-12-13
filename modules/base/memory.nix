@@ -3,9 +3,9 @@
 with lib;
 
 let
-  cfg = config.my.memory;
+  cfg = config.core.memory;
 in {
-  options.my.memory = {
+  options.core.memory = {
     mode = mkOption {
       type = types.enum [ "aggressive" "balanced" "conservative" "none" ];
       default = "none";

@@ -1,9 +1,9 @@
 { config, pkgs, lib, ... }:
 with lib;
 let
-  cfg = config.my.app.web.alist;
+  cfg = config.core.app.web.alist;
 in {
-  options.my.app.web.alist = {
+  options.core.app.web.alist = {
     enable = mkEnableOption "Alist File Listing";
     
     domain = mkOption {
@@ -21,10 +21,10 @@ in {
 
   config = mkIf cfg.enable {
     # Ensure backend is enabled
-    my.container.${cfg.backend}.enable = true;
+    core.container.${cfg.backend}.enable = true;
     
     # Ensure Nginx is enabled if domain is set
-    my.app.web.nginx.enable = mkIf (cfg.domain != null) true;
+    core.app.web.nginx.enable = mkIf (cfg.domain != null) true;
 
     networking.firewall.allowedTCPPorts = mkIf (cfg.domain == null) [ 5244 ];
 

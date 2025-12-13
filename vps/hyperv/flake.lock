@@ -3,7 +3,7 @@
     "disko": {
       "inputs": {
         "nixpkgs": [
-          "my-lib",
+          "lib-core",
           "nixpkgs"
         ]
       },
@@ -21,7 +21,7 @@
         "type": "github"
       }
     },
-    "my-lib": {
+    "lib-core": {
       "inputs": {
         "disko": "disko",
         "nixos-facter-modules": "nixos-facter-modules",
@@ -72,7 +72,7 @@
     },
     "root": {
       "inputs": {
-        "my-lib": "my-lib",
+        "lib-core": "lib-core",
         "nixpkgs": "nixpkgs"
       }
     }

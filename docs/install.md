@@ -136,7 +136,7 @@ sudo nix run \
 mount | grep /mnt
 ```
 
-**分区布局 (由 `my.hardware.disk` 模块定义):**
+**分区布局 (由 `core.hardware.disk` 模块定义):**
 - `/boot/efi` - ESP 分区 (32MB, FAT32)
 - `/` - Btrfs 根分区 (子卷: `@`)
 - `/home` - Btrfs 子卷 (`@home`)
@@ -289,12 +289,12 @@ nixos-rebuild --rollback
 
 ### SSH 无法连接
 
-1. 检查 `my.auth.root.authorizedKeys` 是否配置正确
-2. 检查 `my.auth.root.mode` 是否允许密码登录
+1. 检查 `core.auth.root.authorizedKeys` 是否配置正确
+2. 检查 `core.auth.root.mode` 是否允许密码登录
 3. 确认防火墙是否开放 22 端口
 
 ### 网络配置错误
 
-1. 确认 `my.hardware.network.single-interface` 配置正确
+1. 确认 `core.hardware.network.single-interface` 配置正确
 2. 检查 IP/网关/DNS 设置
 3. DHCP 环境确保启用 `dhcp.enable = true`

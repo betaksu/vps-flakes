@@ -35,8 +35,6 @@ jobs:
           nix flake update
           nix flake update --flake ./vps/tohu
           nix flake update --flake ./vps/hyperv
-          nix flake update --flake ./extra/kernel/cachyos
-          nix flake update --flake ./extra/kernel/cachyos-unstable
 
       - name: Create Pull Request
         id: cpr

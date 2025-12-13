@@ -1,9 +1,9 @@
 { lib, config, pkgs, ... }:
 with lib;
 let
-  cfg = config.my.performance.tuning;
+  cfg = config.core.performance.tuning;
 in {
-  options.my.performance.tuning = {
+  options.core.performance.tuning = {
     enable = mkEnableOption "Tuned performance tuning profiles";
   };
 

@@ -1,9 +1,9 @@
 { config, pkgs, lib, ... }:
 with lib;
 let
-  cfg = config.my.app.web.nginx;
+  cfg = config.core.app.web.nginx;
 in {
-  options.my.app.web.nginx = {
+  options.core.app.web.nginx = {
     enable = mkEnableOption "Nginx Web Server";
     email = mkOption {
       type = types.str;

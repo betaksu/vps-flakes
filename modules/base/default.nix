@@ -1,7 +1,7 @@
 { lib, config, pkgs, ... }:
 with lib;
 let
-  cfg = config.my.base;
+  cfg = config.core.base;
 in {
   imports = [
     ./auth.nix
@@ -12,7 +12,7 @@ in {
     ./update.nix
   ];
 
-  options.my.base = {
+  options.core.base = {
     enable = mkEnableOption "Base system configuration";
   };
 

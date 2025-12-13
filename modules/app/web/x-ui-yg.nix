@@ -1,9 +1,9 @@
 { config, pkgs, lib, ... }:
 with lib;
 let
-  cfg = config.my.app.web.x-ui-yg;
+  cfg = config.core.app.web.x-ui-yg;
 in {
-  options.my.app.web.x-ui-yg = {
+  options.core.app.web.x-ui-yg = {
     enable = mkEnableOption "X-UI-YG Panel";
 
     domain = mkOption {
@@ -33,10 +33,10 @@ in {
 
   config = mkIf cfg.enable {
     # Ensure backend is enabled
-    my.container.${cfg.backend}.enable = true;
+    core.container.${cfg.backend}.enable = true;
     
     # Ensure Nginx is enabled if domain is set
-    my.app.web.nginx.enable = mkIf (cfg.domain != null) true;
+    core.app.web.nginx.enable = mkIf (cfg.domain != null) true;
 
     networking.firewall = {
       allowedTCPPorts = mkIf (cfg.domain == null) [ 54321 ];

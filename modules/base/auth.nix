@@ -1,9 +1,9 @@
 { config, pkgs, lib, ... }:
 with lib;
 let
-  cfg = config.my.auth;
+  cfg = config.core.auth;
 in {
-  options.my.auth = {
+  options.core.auth = {
     root = {
       mode = mkOption {
         type = types.enum [ "default" "permit_passwd" ];

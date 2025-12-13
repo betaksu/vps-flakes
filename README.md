@@ -54,15 +54,15 @@ nixos-config/
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    my-lib.url = "path:../../";  # 引用模块库
-    my-lib.inputs.nixpkgs.follows = "nixpkgs";
+    lib-core.url = "path:../../";  # 引用模块库
+    lib-core.inputs.nixpkgs.follows = "nixpkgs";
   };
   
-  outputs = { self, nixpkgs, my-lib, ... }: {
+  outputs = { self, nixpkgs, lib-core, ... }: {
     nixosConfigurations.<hostname> = nixpkgs.lib.nixosSystem {
       modules = [
-        my-lib.nixosModules.default           # 引入核心模块
-        my-lib.nixosModules.kernel-<variant>  # 选择内核
+        lib-core.nixosModules.default           # 引入核心模块
+        lib-core.nixosModules.kernel-<variant>  # 选择内核
         # ... 主机特定配置
       ];
     };
@@ -78,10 +78,10 @@ nixos-config/
 
 | 选项 | 类型 | 默认值 | 描述 |
 |------|------|--------|------|
-| `my.base.enable` | bool | false | 启用基础系统配置 (SSH, 时区, 国际化等) |
-| `my.base.update.enable` | bool | false | 启用自动更新和垃圾回收 |
-| `my.base.update.allowReboot` | bool | false | 更新后允许自动重启 |
-| `my.base.update.flakeUri` | string | `github:ShaoG-R/nixos-config?dir=vps/${hostname}` | 自动更新的 Flake 源 |
+| `core.base.enable` | bool | false | 启用基础系统配置 (SSH, 时区, 国际化等) |
+| `core.base.update.enable` | bool | false | 启用自动更新和垃圾回收 |
+| `core.base.update.allowReboot` | bool | false | 更新后允许自动重启 |
+| `core.base.update.flakeUri` | string | `github:ShaoG-R/nixos-config?dir=vps/${hostname}` | 自动更新的 Flake 源 |
 
 **子模块:**
 - `auth.nix` - SSH 认证配置 (密钥/密码登录)
@@ -94,11 +94,11 @@ nixos-config/
 
 | 选项 | 类型 | 默认值 | 描述 |
 |------|------|--------|------|
-| `my.hardware.type` | enum | "physical" | 硬件类型: `physical` (物理机) / `vps` (虚拟机) |
-| `my.hardware.disk.enable` | bool | false | 启用 Disko 磁盘分区 |
-| `my.hardware.disk.device` | string | "/dev/sda" | 磁盘设备路径 |
-| `my.hardware.disk.swapSize` | int/null | 0 | Swap 大小 (MB)，0 或 null 禁用 |
-| `my.hardware.network.single-interface.enable` | bool | false | 单网卡配置 |
+| `core.hardware.type` | enum | "physical" | 硬件类型: `physical` (物理机) / `vps` (虚拟机) |
+| `core.hardware.disk.enable` | bool | false | 启用 Disko 磁盘分区 |
+| `core.hardware.disk.device` | string | "/dev/sda" | 磁盘设备路径 |
+| `core.hardware.disk.swapSize` | int/null | 0 | Swap 大小 (MB)，0 或 null 禁用 |
+| `core.hardware.network.single-interface.enable` | bool | false | 单网卡配置 |
 
 **磁盘分区布局:**
 - BIOS+GPT 兼容引导 (1M boot 分区)
@@ -110,9 +110,9 @@ nixos-config/
 
 | 选项 | 描述 |
 |------|------|
-| `my.app.web.nginx` | Nginx 反向代理 + ACME 自动证书 |
-| `my.app.web.alist` | Alist 文件列表服务 |
-| `my.app.web.x-ui-yg` | X-UI-YG 代理面板 |
+| `core.app.web.nginx` | Nginx 反向代理 + ACME 自动证书 |
+| `core.app.web.alist` | Alist 文件列表服务 |
+| `core.app.web.x-ui-yg` | X-UI-YG 代理面板 |
 
 ### 📦 `modules/kernel/` - 内核优化模块
 
@@ -126,10 +126,10 @@ nixos-config/
 
 ## 认证配置
 
-通过 `my.auth.root` 配置 root 用户认证：
+通过 `core.auth.root` 配置 root 用户认证：
 
 ```nix
-my.auth.root = {
+core.auth.root = {
   mode = "default";  # "default" (仅密钥) 或 "permit_passwd" (允许密码)
   initialHashedPassword = "$6$...";  # 密码 Hash
   authorizedKeys = [ "ssh-ed25519 AAAA..." ];  # SSH 公钥
@@ -169,7 +169,7 @@ Fork 后完成必要的 GitHub 设置。
 
 ### 自动升级
 
-启用 `my.base.update.enable = true` 后：
+启用 `core.base.update.enable = true` 后：
 - **每天凌晨 04:00** 自动检查 GitHub 仓库更新
 - 自动下载并应用新配置
 - 可选自动重启 (`allowReboot = true`)
@@ -197,27 +197,27 @@ GitHub Actions (`update-flake.yml`) 会每天自动检查并更新 `flake.lock`�
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    my-lib.url = "path:../../";
-    my-lib.inputs.nixpkgs.follows = "nixpkgs";
+    lib-core.url = "path:../../";
+    lib-core.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, my-lib, ... }: 
+  outputs = { self, nixpkgs, lib-core, ... }: 
   let
     commonConfig = { config, pkgs, ... }: {
       system.stateVersion = "25.11";
-      my.base.enable = true;
+      core.base.enable = true;
       
-      my.hardware.type = "vps";
-      my.hardware.disk = {
+      core.hardware.type = "vps";
+      core.hardware.disk = {
         enable = true;
         swapSize = 2048;
       };
       
-      my.performance.tuning.enable = true;
-      my.memory.mode = "aggressive";
-      my.container.podman.enable = true;
+      core.performance.tuning.enable = true;
+      core.memory.mode = "aggressive";
+      core.container.podman.enable = true;
       
-      my.base.update = {
+      core.base.update = {
         enable = true;
         allowReboot = true;
       };
@@ -226,19 +226,19 @@ GitHub Actions (`update-flake.yml`) 会每天自动检查并更新 `flake.lock`�
     nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
-        my-lib.nixosModules.default
-        my-lib.nixosModules.kernel-xanmod
+        lib-core.nixosModules.default
+        lib-core.nixosModules.kernel-xanmod
         commonConfig
         ({ config, pkgs, ... }: {
           networking.hostName = "myhost";
           facter.reportPath = ./facter.json;
           
-          my.hardware.network.single-interface = {
+          core.hardware.network.single-interface = {
             enable = true;
             dhcp.enable = true;
           };
           
-          my.auth.root = {
+          core.auth.root = {
             mode = "default";
             authorizedKeys = [ "ssh-ed25519 AAAA..." ];
           };

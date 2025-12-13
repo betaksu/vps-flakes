@@ -1,9 +1,9 @@
 { lib, config, pkgs, ... }:
 with lib;
 let
-  cfg = config.my.base.update;
+  cfg = config.core.base.update;
 in {
-  options.my.base.update = {
+  options.core.base.update = {
     enable = mkEnableOption "System auto-update and garbage collection";
     
     flakeUri = mkOption {

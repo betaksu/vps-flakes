@@ -1,14 +1,14 @@
 { lib, config, pkgs, ... }:
 with lib;
 let
-  cfg = config.my.hardware.disk;
+  cfg = config.core.hardware.disk;
   # 处理 swapSize 为 null 的情况，将其视为 0
   safeSwapSize = if cfg.swapSize != null then cfg.swapSize else 0;
   imageSize = "${toString (safeSwapSize + 3072)}M";
 in {
   imports = [ ];
 
-  options.my.hardware.disk = {
+  options.core.hardware.disk = {
     enable = mkEnableOption "Disk Configuration";
     
     device = mkOption {

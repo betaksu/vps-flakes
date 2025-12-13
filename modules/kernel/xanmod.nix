@@ -1,9 +1,9 @@
 { lib, config, pkgs, ... }:
 with lib;
 let
-  cfg = config.my.kernel.xanmod;
+  cfg = config.core.kernel.xanmod;
 in {
-  options.my.kernel.xanmod = {
+  options.core.kernel.xanmod = {
     enable = mkOption {
       type = types.bool;
       default = true;

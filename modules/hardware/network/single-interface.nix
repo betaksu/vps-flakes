@@ -1,9 +1,9 @@
 { lib, config, pkgs, ... }:
 with lib;
 let
-  cfg = config.my.hardware.network.single-interface;
+  cfg = config.core.hardware.network.single-interface;
 in {
-  options.my.hardware.network.single-interface = {
+  options.core.hardware.network.single-interface = {
     enable = mkEnableOption "Single interface networking";
     
     nameservers = mkOption {

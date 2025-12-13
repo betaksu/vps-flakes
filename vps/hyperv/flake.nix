@@ -3,32 +3,32 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    my-lib.url = "path:../../";
-    my-lib.inputs.nixpkgs.follows = "nixpkgs";
+    lib-core.url = "path:../../";
+    lib-core.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, my-lib, ... }: 
+  outputs = { self, nixpkgs, lib-core, ... }: 
   let
     commonConfig = { config, pkgs, ... }: {
         system.stateVersion = "25.11"; 
-        my.base.enable = true;
+        core.base.enable = true;
         
         # Hardware
-        my.hardware.type = "vps";
-        my.hardware.disk = {
+        core.hardware.type = "vps";
+        core.hardware.disk = {
             enable = true;
             swapSize = 4096;
         };
         
         # Performance
-        my.performance.tuning.enable = true;
-        my.memory.mode = "conservative";
+        core.performance.tuning.enable = true;
+        core.memory.mode = "conservative";
         
         # Container
-        my.container.podman.enable = true;
+        core.container.podman.enable = true;
         
         # Update
-        my.base.update = {
+        core.base.update = {
             enable = true;
             allowReboot = true;
         };
@@ -37,11 +37,11 @@
   {
     nixosConfigurations.hyperv = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inputs = my-lib.inputs; };
+      specialArgs = { inputs = lib-core.inputs; };
       modules = [
         # 1. 引入我们的模块库
-        my-lib.nixosModules.default
-        my-lib.nixosModules.kernel-xanmod
+        lib-core.nixosModules.default
+        lib-core.nixosModules.kernel-xanmod
         
         # 2. 通用配置
         commonConfig
@@ -51,13 +51,13 @@
             networking.hostName = "hyperv";
             facter.reportPath = ./facter.json;
             
-            my.hardware.network.single-interface = {
+            core.hardware.network.single-interface = {
                 enable = true;
                 dhcp.enable = true;
             };
             
             # Auth
-            my.auth.root = {
+            core.auth.root = {
                 mode = "permit_passwd";
                 initialHashedPassword = "$6$DhwUDApjyhVCtu4H$mr8WIUeuNrxtoLeGjrMqTtp6jQeQIBuWvq/.qv9yKm3T/g5794hV.GhG78W2rctGDaibDAgS9X9I9FuPndGC01";
                 authorizedKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBaNS9FByCEaDjPOUpeQZg58zM2wD+jEY6SkIbE1k3Zn ed25519 256-20251206 shaog@duck.com" ];
@@ -68,7 +68,7 @@
         # 使用 testers.nixosTest 而非 runtesters.nixosTest，因为后者会将 nixpkgs.* 设为只读
         ({ config, pkgs, ... }: 
         let
-          testPkgs = import my-lib.inputs.nixpkgs {
+          testPkgs = import lib-core.inputs.nixpkgs {
             system = "x86_64-linux";
             config.allowUnfree = true;
           };
@@ -78,8 +78,8 @@
             
             nodes.machine = { config, lib, ... }: {
                 imports = [ 
-                    my-lib.nixosModules.default 
-                    my-lib.nixosModules.kernel-xanmod
+                    lib-core.nixosModules.default 
+                    lib-core.nixosModules.kernel-xanmod
                     commonConfig
                 ];
                 
@@ -87,7 +87,7 @@
                 nixpkgs.pkgs = testPkgs;
                 
                 # testers.nixosTest 不支持 specialArgs，需要在这里注入 inputs
-                _module.args.inputs = my-lib.inputs;
+                _module.args.inputs = lib-core.inputs;
                 
                 networking.hostName = "hyperv-test";
             };

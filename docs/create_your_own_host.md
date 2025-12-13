@@ -21,7 +21,7 @@ nixos-config/
         └── facter.json
 ```
 
-每个主机都是一个**独立的 Flake**，通过 `my-lib.url = "path:../../"` 引用模块库。
+每个主机都是一个**独立的 Flake**，通过 `lib-core.url = "path:../../"` 引用模块库。
 
 ---
 
@@ -80,34 +80,34 @@ cp ../tohu/flake.nix ./flake.nix
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    my-lib.url = "path:../../";
-    my-lib.inputs.nixpkgs.follows = "nixpkgs";
+    lib-core.url = "path:../../";
+    lib-core.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, my-lib, ... }: 
+  outputs = { self, nixpkgs, lib-core, ... }: 
   let
     # 通用配置 (用于实际部署和测试)
     commonConfig = { config, pkgs, ... }: {
       system.stateVersion = "25.11"; 
-      my.base.enable = true;
+      core.base.enable = true;
       
       # ========== 硬件配置 ==========
-      my.hardware.type = "vps";  # "vps" 或 "physical"
-      my.hardware.disk = {
+      core.hardware.type = "vps";  # "vps" 或 "physical"
+      core.hardware.disk = {
         enable = true;
         device = "/dev/sda";     # 磁盘设备
         swapSize = 2048;         # Swap 大小 (MB)，0 禁用
       };
       
       # ========== 性能配置 ==========
-      my.performance.tuning.enable = true;
-      my.memory.mode = "aggressive";  # "conservative" / "aggressive"
+      core.performance.tuning.enable = true;
+      core.memory.mode = "aggressive";  # "conservative" / "aggressive"
       
       # ========== 容器配置 ==========
-      my.container.podman.enable = true;
+      core.container.podman.enable = true;
       
       # ========== 自动更新配置 ==========
-      my.base.update = {
+      core.base.update = {
         enable = true;
         allowReboot = true;       # 更新后自动重启
         # flakeUri 默认使用 github:ShaoG-R/nixos-config?dir=vps/${hostName}
@@ -119,11 +119,11 @@ cp ../tohu/flake.nix ./flake.nix
   {
     nixosConfigurations.<新主机名> = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
-      specialArgs = { inputs = my-lib.inputs; };
+      specialArgs = { inputs = lib-core.inputs; };
       modules = [
         # 1. 引入模块库
-        my-lib.nixosModules.default
-        my-lib.nixosModules.kernel-xanmod  # 或 kernel-cachyos / kernel-cachyos-unstable
+        lib-core.nixosModules.default
+        lib-core.nixosModules.kernel-xanmod  # 或 kernel-cachyos / kernel-cachyos-unstable
         
         # 2. 通用配置
         commonConfig
@@ -135,13 +135,13 @@ cp ../tohu/flake.nix ./flake.nix
           
           # ========== 网络配置 ==========
           # DHCP 模式:
-          my.hardware.network.single-interface = {
+          core.hardware.network.single-interface = {
             enable = true;
             dhcp.enable = true;
           };
           
           # 静态 IP 模式 (取消注释并配置):
-          # my.hardware.network.single-interface = {
+          # core.hardware.network.single-interface = {
           #   enable = true;
           #   ipv4 = {
           #     enable = true;
@@ -152,7 +152,7 @@ cp ../tohu/flake.nix ./flake.nix
           # };
           
           # ========== 认证配置 ==========
-          my.auth.root = {
+          core.auth.root = {
             mode = "default";  # "default" (仅密钥) 或 "permit_passwd" (允许密码)
             initialHashedPassword = "$6$...";  # 密码 Hash (见下方生成方法)
             authorizedKeys = [ 
@@ -161,7 +161,7 @@ cp ../tohu/flake.nix ./flake.nix
           };
           
           # ========== 应用服务 (可选) ==========
-          # my.app.web.alist = {
+          # core.app.web.alist = {
           #   enable = true;
           #   domain = "alist.example.com";
           #   backend = "podman";
@@ -183,11 +183,11 @@ cp ../tohu/flake.nix ./flake.nix
 nix run nixpkgs#mkpasswd -- -m sha-512
 ```
 
-将生成的 Hash 填入 `my.auth.root.initialHashedPassword`。
+将生成的 Hash 填入 `core.auth.root.initialHashedPassword`。
 
 #### 添加 SSH 公钥
 
-将你的 SSH 公钥添加到 `my.auth.root.authorizedKeys` 列表。
+将你的 SSH 公钥添加到 `core.auth.root.authorizedKeys` 列表。
 
 查看本地公钥:
 ```bash
@@ -235,11 +235,11 @@ ssh root@<TARGET_IP> "nix run --extra-experimental-features 'nix-command flakes'
 # 在 modules 列表末尾添加
 ({ config, pkgs, ... }: 
 let
-  testPkgs = import my-lib.inputs.nixpkgs {
+  testPkgs = import lib-core.inputs.nixpkgs {
     system = "x86_64-linux";
     config.allowUnfree = true;
     # 如果使用 cachyos 内核，需要添加 overlay:
-    # overlays = [ my-lib.inputs.chaotic.overlays.default ];
+    # overlays = [ lib-core.inputs.chaotic.overlays.default ];
   };
 in {
   system.build.vmTest = pkgs.testers.nixosTest {
@@ -247,14 +247,14 @@ in {
     
     nodes.machine = { config, lib, ... }: {
       imports = [ 
-        my-lib.nixosModules.default 
-        my-lib.nixosModules.kernel-xanmod
+        lib-core.nixosModules.default 
+        lib-core.nixosModules.kernel-xanmod
         commonConfig
       ];
       
       nixpkgs.pkgs = testPkgs;
       # testers.nixosTest 不支持 specialArgs，需要在这里注入 inputs
-      _module.args.inputs = my-lib.inputs;
+      _module.args.inputs = lib-core.inputs;
       networking.hostName = "<新主机名>-test";
     };
     
@@ -309,7 +309,7 @@ git push -u origin add-host-<新主机名>
 
 ### 自定义磁盘布局
 
-`my.hardware.disk` 模块提供的默认布局：
+`core.hardware.disk` 模块提供的默认布局：
 
 ```
 /dev/sda
@@ -323,14 +323,14 @@ git push -u origin add-host-<新主机名>
     └── @log       → /var/log
 ```
 
-如需自定义，可以禁用 `my.hardware.disk.enable` 并使用原生 Disko 配置。
+如需自定义，可以禁用 `core.hardware.disk.enable` 并使用原生 Disko 配置。
 
 ### 自定义自动更新源
 
 默认情况下，自动更新会从你的 GitHub 仓库拉取：
 
 ```nix
-my.base.update.flakeUri = "github:<你的用户名>/nixos-config?dir=vps/<主机名>";
+core.base.update.flakeUri = "github:<你的用户名>/nixos-config?dir=vps/<主机名>";
 ```
 
 如果你的仓库名称或结构不同，请相应修改此选项。
@@ -341,14 +341,14 @@ my.base.update.flakeUri = "github:<你的用户名>/nixos-config?dir=vps/<主机
 
 ```nix
 # Alist 文件列表
-my.app.web.alist = {
+core.app.web.alist = {
   enable = true;
   domain = "files.example.com";
   backend = "podman";
 };
 
 # X-UI-YG 代理面板
-my.app.web.x-ui-yg = {
+core.app.web.x-ui-yg = {
   enable = true;
   domain = "panel.example.com";
   backend = "podman";

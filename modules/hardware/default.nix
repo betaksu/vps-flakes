@@ -1,7 +1,7 @@
 { config, lib, pkgs, modulesPath, ... }:
 
 let
-  cfg = config.my.hardware;
+  cfg = config.core.hardware;
 in
 {
   imports = [
@@ -9,7 +9,7 @@ in
     ./network/single-interface.nix
   ];
 
-  options.my.hardware = {
+  options.core.hardware = {
     type = lib.mkOption {
       type = lib.types.enum [ "physical" "vps" ];
       default = "physical";

@@ -26,7 +26,7 @@
     "disko": {
       "inputs": {
         "nixpkgs": [
-          "my-lib",
+          "lib-core",
           "nixpkgs"
         ]
       },
@@ -120,7 +120,7 @@
       },
       "parent": []
     },
-    "my-lib": {
+    "lib-core": {
       "inputs": {
         "disko": "disko",
         "nixos-facter-modules": "nixos-facter-modules",
@@ -212,7 +212,7 @@
     "root": {
       "inputs": {
         "kernel-cachyos-unstable": "kernel-cachyos-unstable",
-        "my-lib": "my-lib",
+        "lib-core": "lib-core",
         "nixpkgs": "nixpkgs_2"
       }
     },

@@ -1,9 +1,9 @@
 { config, pkgs, lib, ... }:
 with lib;
 let
-  cfg = config.my.container;
+  cfg = config.core.container;
 in {
-  options.my.container = {
+  options.core.container = {
     docker = {
       enable = mkEnableOption "Docker container engine";
     };

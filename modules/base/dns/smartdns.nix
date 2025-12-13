@@ -1,9 +1,9 @@
 { config, pkgs, lib, ... }:
 with lib;
 let
-  cfg = config.my.dns.smartdns;
+  cfg = config.core.dns.smartdns;
 in {
-  options.my.dns.smartdns = {
+  options.core.dns.smartdns = {
     mode = mkOption {
       type = types.enum [ "oversea" "china" "none" ];
       default = "none";
