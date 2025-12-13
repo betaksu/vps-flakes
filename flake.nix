@@ -25,20 +25,6 @@
           ./modules/hardware/default.nix
         ];
       };
-      
-      # 2. 细分导出 - 内核优化模块（通过独立 Git 仓库管理）
-      # 使用 builtins.getFlake 引用外部仓库，实现依赖隔离
-      # chaotic 依赖完全隔离在 nixos-config-extra 仓库中
-      kernel-cachyos = { ... }: {
-        imports = [
-          (builtins.getFlake "github:ShaoG-R/nixos-config-extra?dir=kernel/cachyos").nixosModules.default
-        ];
-      };
-      kernel-cachyos-unstable = { ... }: {
-        imports = [
-          (builtins.getFlake "github:ShaoG-R/nixos-config-extra?dir=kernel/cachyos-unstable").nixosModules.default
-        ];
-      };
       kernel-xanmod = ./modules/kernel/xanmod.nix;
     };
   };
