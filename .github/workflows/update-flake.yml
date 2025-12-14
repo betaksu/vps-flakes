@@ -6,6 +6,9 @@ on:
     - cron: '40 19 * * *'
   workflow_dispatch: # 允许手动触发
   workflow_call: # 允许被其他工作流调用
+  push:
+    branches:
+      - pre-release
 
 permissions:
   contents: write
@@ -57,7 +60,7 @@ jobs:
           delete-branch: true
 
       - name: Enable Pull Request Automerge
-        # 仅当成功创建了 PR 时运行
+        # 仅当成功创建了 PR 时运行 (防止死循环：如果没有新更新，也就不会创建 PR，流程结束)
         if: steps.cpr.outputs.pull-request-operation == 'created'
         run: gh pr merge --auto --merge "${{ steps.cpr.outputs.pull-request-number }}"
         env:
