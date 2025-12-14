@@ -52,8 +52,8 @@ jobs:
             Automated update of flake.lock.
             
             This PR will be automatically merged if the CI pipeline passes.
-          branch: "auto-update-flake-lock"
-          base: "main"
+          branch: "auto-update-flake-lock-${{ github.ref_name }}"
+          base: "${{ github.ref_name }}"
           delete-branch: true
 
       - name: Enable Pull Request Automerge
