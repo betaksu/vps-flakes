@@ -6,39 +6,118 @@ let
   cfg = config.core.app.hysteria;
   yamlFormat = pkgs.formats.yaml { };
 
+  removeEmpty = let
+    isSecret = v: isString v && (hasPrefix "__" v);
+    isEmpty = v: v == null || v == [] || v == {} || (isString v && v == "" && !isSecret v);
+  in
+    attr:
+    if isAttrs attr then
+      let
+        filtered = mapAttrs (n: v: removeEmpty v) attr;
+        result = filterAttrs (n: v: !isEmpty v) filtered;
+      in result
+    else if isList attr then
+      let
+        filtered = map (v: removeEmpty v) attr;
+        result = filter (v: !isEmpty v) filtered;
+      in result
+    else attr;
+
   hysteriaConfigRaw = let
     s = cfg.settings;
-    # 处理混淆密码占位符 logic
-    obfsConfig = if (s.obfs != null && s.obfs.type == "salamander") then 
-      s.obfs // {
-        salamander = s.obfs.salamander // {
-          password = if s.obfs.salamander.password != "" 
-                     then s.obfs.salamander.password 
-                     else "__OBFS_PASSWORD_PLACEHOLDER__";
-        };
-      }
-    else s.obfs;
 
-    # 处理验证密码占位符 logic
-    authConfig = if (s.auth != null && s.auth.type == "password") then
-      s.auth // {
-        password = if s.auth.password != ""
-                   then s.auth.password
-                   else "__AUTH_PASSWORD_PLACEHOLDER__";
-      }
-    else s.auth;
+    # logic helpers
+    pick = set: keys: if set == null then null else
+      let
+        picked = filterAttrs (n: v: elem n keys) set;
+      in if picked == {} then null else picked;
+
+    # 1. ACME
+    acmeRaw = if s.acme == null then null else
+      let
+        a = s.acme;
+        common = { inherit (a) domains email ca listenHost dir type; };
+        specific = if a.type == "http" then { inherit (a) http; }
+                   else if a.type == "tls" then { inherit (a) tls; }
+                   else if a.type == "dns" then { inherit (a) dns; }
+                   else {};
+      in common // specific;
+
+    # 2. Auth (handle placeholder)
+    authRaw = if s.auth == null then null else
+      let
+        a = s.auth;
+        common = { inherit (a) type; };
+        specific = if a.type == "password" then {
+            password = if a.password != "" then a.password else "__AUTH_PASSWORD_PLACEHOLDER__";
+          }
+          else if a.type == "userpass" then { inherit (a) userpass; }
+          else if a.type == "http" then { inherit (a) http; }
+          else if a.type == "command" then { inherit (a) command; }
+          else {};
+      in common // specific;
+
+    # 3. Obfs (handle placeholder)
+    obfsRaw = if s.obfs == null then null else
+      let
+        o = s.obfs;
+        common = { inherit (o) type; };
+        specific = if o.type == "salamander" then {
+            salamander = {
+               password = if o.salamander.password != "" then o.salamander.password else "__OBFS_PASSWORD_PLACEHOLDER__";
+            };
+          } else {};
+      in common // specific;
+
+   # 4. Outbounds
+    outboundsRaw = if s.outbounds == [] then null else
+      map (o:
+        let
+          common = { inherit (o) name type; };
+          specific = if o.type == "direct" then { inherit (o) direct; }
+                     else if o.type == "socks5" then { inherit (o) socks5; }
+                     else if o.type == "http" then { inherit (o) http; }
+                     else {};
+        in common // specific
+      ) s.outbounds;
+    
+    # 5. Resolver 
+    resolverRaw = if s.resolver == null then null else
+       let
+         r = s.resolver;
+         common = { inherit (r) type; };
+         specific = if r.type == "udp" then { inherit (r) udp; }
+                    else if r.type == "tcp" then { inherit (r) tcp; }
+                    else if r.type == "tls" then { inherit (r) tls; }
+                    else if r.type == "https" then { inherit (r) https; }
+                    else {};
+       in common // specific;
+
+    # 6. Masquerade
+    masqueradeRaw = if s.masquerade == null then null else
+       let
+         m = s.masquerade;
+         common = { inherit (m) type listenHTTP listenHTTPS forceHTTPS; };
+         specific = if m.type == "file" then { inherit (m) file; }
+                    else if m.type == "proxy" then { inherit (m) proxy; }
+                    else if m.type == "string" then { inherit (m) string; }
+                    else {};
+       in common // specific;
+
   in 
-    # 过滤掉 null 值
-    filterNulls (s // {
-      obfs = obfsConfig;
-      auth = authConfig;
-    });
+    removeEmpty {
+      inherit (s) listen quic bandwidth ignoreClientBandwidth speedTest disableUDP udpIdleTimeout sniff acl trafficStats;
+      tls = s.tls;
+      acme = acmeRaw;
+      obfs = obfsRaw;
+      auth = authRaw;
+      resolver = resolverRaw;
+      outbounds = outboundsRaw;
+      masquerade = masqueradeRaw;
+    };
 
-  # 过滤掉 null 值的辅助函数
-  filterNulls = attrs: lib.filterAttrsRecursive (n: v: v != null) attrs;
-  
   # 生成最终的配置文件 (Derivation)
-  configFile = yamlFormat.generate "hysteria.yaml" (filterNulls hysteriaConfigRaw);
+  configFile = yamlFormat.generate "hysteria.yaml" hysteriaConfigRaw;
 
   # --- 2. 定义 Docker Compose 结构 ---
   composeConfigRaw = {
