@@ -203,14 +203,14 @@ in {
             domains = mkOption { type = types.listOf types.str; default = []; };
             email = mkOption { type = types.nullOr types.str; default = null; };
             ca = mkOption { type = types.nullOr types.str; default = null; };
-            listenHost = mkOption { type = types.str; default = "0.0.0.0"; };
+            listenHost = mkOption { type = types.nullOr types.str; default = null; };
             dir = mkOption { type = types.nullOr types.str; default = null; };
-            type = mkOption { type = types.enum [ "http" "tls" "dns" ]; default = "http"; };
+            type = mkOption { type = types.nullOr (types.enum [ "http" "tls" "dns" ]); default = null; };
             http = mkOption {
               default = {};
               type = types.submodule {
                 options = {
-                  altPort = mkOption { type = types.port; default = 80; };
+                  altPort = mkOption { type = types.nullOr types.port; default = null; };
                 };
               };
             };
@@ -218,7 +218,7 @@ in {
               default = {};
               type = types.submodule {
                 options = {
-                   altPort = mkOption { type = types.port; default = 443; };
+                   altPort = mkOption { type = types.nullOr types.port; default = null; };
                 };
               };
             };
@@ -226,7 +226,7 @@ in {
               default = {};
               type = types.submodule {
                 options = {
-                  name = mkOption { type = types.str; default = ""; };
+                  name = mkOption { type = types.nullOr types.str; default = null; };
                   config = mkOption { type = types.attrsOf types.str; default = {}; };
                 };
               };
@@ -280,10 +280,10 @@ in {
         });
       };
       
-      ignoreClientBandwidth = mkOption { type = types.bool; default = false; };
-      speedTest = mkOption { type = types.bool; default = false; };
-      disableUDP = mkOption { type = types.bool; default = false; };
-      udpIdleTimeout = mkOption { type = types.str; default = "60s"; };
+      ignoreClientBandwidth = mkOption { type = types.nullOr types.bool; default = null; };
+      speedTest = mkOption { type = types.nullOr types.bool; default = null; };
+      disableUDP = mkOption { type = types.nullOr types.bool; default = null; };
+      udpIdleTimeout = mkOption { type = types.nullOr types.str; default = null; };
 
       auth = mkOption {
         default = null;
@@ -312,23 +312,23 @@ in {
         default = null;
         type = types.nullOr (types.submodule {
           options = {
-            type = mkOption { type = types.enum ["udp" "tcp" "tls" "https"]; default = "udp"; };
+            type = mkOption { type = types.nullOr (types.enum ["udp" "tcp" "tls" "https"]); default = null; };
             tcp = mkOption { 
               default = {}; 
-              type = types.submodule { options = { addr = mkOption { type = types.str; default = ""; }; timeout = mkOption { type = types.str; default = "4s"; }; }; }; 
+              type = types.submodule { options = { addr = mkOption { type = types.nullOr types.str; default = null; }; timeout = mkOption { type = types.nullOr types.str; default = null; }; }; }; 
             };
             udp = mkOption { 
               default = {}; 
-              type = types.submodule { options = { addr = mkOption { type = types.str; default = ""; }; timeout = mkOption { type = types.str; default = "4s"; }; }; }; 
+              type = types.submodule { options = { addr = mkOption { type = types.nullOr types.str; default = null; }; timeout = mkOption { type = types.nullOr types.str; default = null; }; }; }; 
             };
             tls = mkOption {
               default = {};
               type = types.submodule {
                 options = {
-                  addr = mkOption { type = types.str; default = ""; };
-                  timeout = mkOption { type = types.str; default = "10s"; };
-                  sni = mkOption { type = types.str; default = ""; };
-                  insecure = mkOption { type = types.bool; default = false; };
+                  addr = mkOption { type = types.nullOr types.str; default = null; };
+                  timeout = mkOption { type = types.nullOr types.str; default = null; };
+                  sni = mkOption { type = types.nullOr types.str; default = null; };
+                  insecure = mkOption { type = types.nullOr types.bool; default = null; };
                 };
               };
             };
@@ -336,10 +336,10 @@ in {
               default = {};
               type = types.submodule {
                 options = {
-                  addr = mkOption { type = types.str; default = ""; };
-                  timeout = mkOption { type = types.str; default = "10s"; };
-                  sni = mkOption { type = types.str; default = ""; };
-                  insecure = mkOption { type = types.bool; default = false; };
+                  addr = mkOption { type = types.nullOr types.str; default = null; };
+                  timeout = mkOption { type = types.nullOr types.str; default = null; };
+                  sni = mkOption { type = types.nullOr types.str; default = null; };
+                  insecure = mkOption { type = types.nullOr types.bool; default = null; };
                 };
               };
             };
@@ -352,11 +352,11 @@ in {
         default = null;
         type = types.nullOr (types.submodule {
           options = {
-            enable = mkOption { type = types.bool; default = true; };
-            timeout = mkOption { type = types.str; default = "2s"; };
-            rewriteDomain = mkOption { type = types.bool; default = false; };
-            tcpPorts = mkOption { type = types.str; default = "80,443"; };
-            udpPorts = mkOption { type = types.str; default = "all"; };
+            enable = mkOption { type = types.nullOr types.bool; default = null; };
+            timeout = mkOption { type = types.nullOr types.str; default = null; };
+            rewriteDomain = mkOption { type = types.nullOr types.bool; default = null; };
+            tcpPorts = mkOption { type = types.nullOr types.str; default = null; };
+            udpPorts = mkOption { type = types.nullOr types.str; default = null; };
           };
         });
       };
@@ -369,7 +369,7 @@ in {
             file = mkOption { type = types.nullOr types.str; default = null; };
             geoip = mkOption { type = types.nullOr types.str; default = null; };
             geosite = mkOption { type = types.nullOr types.str; default = null; };
-            geoUpdateInterval = mkOption { type = types.str; default = "168h"; };
+            geoUpdateInterval = mkOption { type = types.nullOr types.str; default = null; };
             inline = mkOption { type = types.listOf types.str; default = []; };
           };
         });
@@ -398,9 +398,9 @@ in {
               default = {};
               type = types.submodule {
                 options = {
-                  addr = mkOption { type = types.str; default = ""; };
-                  username = mkOption { type = types.str; default = ""; };
-                  password = mkOption { type = types.str; default = ""; };
+                  addr = mkOption { type = types.nullOr types.str; default = null; };
+                  username = mkOption { type = types.nullOr types.str; default = null; };
+                  password = mkOption { type = types.nullOr types.str; default = null; };
                 };
               };
             };
@@ -454,15 +454,15 @@ in {
               default = {};
               type = types.submodule {
                 options = {
-                   content = mkOption { type = types.str; default = ""; };
+                   content = mkOption { type = types.nullOr types.str; default = null; };
                    headers = mkOption { type = types.attrsOf types.str; default = {}; };
-                   statusCode = mkOption { type = types.int; default = 200; };
+                   statusCode = mkOption { type = types.nullOr types.int; default = null; };
                 };
               };
             };
             listenHTTP = mkOption { type = types.nullOr types.str; default = null; };
             listenHTTPS = mkOption { type = types.nullOr types.str; default = null; };
-            forceHTTPS = mkOption { type = types.bool; default = false; };
+            forceHTTPS = mkOption { type = types.nullOr types.bool; default = null; };
           };
         });
       };
