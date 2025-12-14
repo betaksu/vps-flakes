@@ -31,11 +31,11 @@
       },
       "locked": {
         "dir": "core",
-        "lastModified": 1765698189,
-        "narHash": "sha256-SgOV6zSx+pyPQjvoopiyNLc88GKQlYIUajzGTl7IYDQ=",
+        "lastModified": 1765707030,
+        "narHash": "sha256-LJoJtrYjVsKFnr8psqGtOHYzBDbnIuVsPWqAKTRQZeU=",
         "owner": "ShaoG-R",
         "repo": "nixos-config",
-        "rev": "c6470b3c20e79501155d9c15fe220ab73ea627e9",
+        "rev": "df76995b92e6adb1eb1698ef9927afd99f75fa6c",
         "type": "github"
       },
       "original": {
