@@ -187,6 +187,9 @@ jobs:
   # 任务 5: 触发 flake.lock 更新 (仅在测试成功时)
   # ============================================================
   trigger-update-flake:
+    permissions:
+      contents: write
+      pull-requests: write
     needs: 
       - should-run
       - ci-success
