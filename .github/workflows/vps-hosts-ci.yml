@@ -1,7 +1,7 @@
-name: Build and Test NixOS Configuration
+name: VPS Hosts Build and Test
 
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths-ignore:
@@ -15,9 +15,9 @@ concurrency:
 
 jobs:
   # ============================================================
-  # 任务 1: 更新所有子 Flake 的 lock 文件
+  # 任务 1: 更新 VPS Hosts 的 lock 文件
   # ============================================================
-  update-locks:
+  update-vps-locks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -36,32 +36,32 @@ jobs:
           name: chaotic-nyx
           skipPush: true
 
-      # 更新所有子 flake 和根目录的 lock 文件
-      - name: Update all flake.lock files
+      # 更新所有 VPS host 的 flake.lock
+      - name: Update VPS hosts flake.lock files
         run: |
-          nix flake update --flake ./core
-          nix flake update --flake ./extra/kernel/cachyos
-          nix flake update --flake ./extra/kernel/cachyos-unstable
-          nix flake update --flake .
+          nix flake update --flake ./vps/hyperv
+          nix flake update --flake ./vps/tohu
 
       # 上传更新后的 lock 文件作为 artifact
       - name: Upload updated flake.lock files
         uses: actions/upload-artifact@v4
         with:
-          name: flake-locks
+          name: vps-flake-locks
           path: |
-            flake.lock
-            core/flake.lock
-            extra/kernel/cachyos/flake.lock
-            extra/kernel/cachyos-unstable/flake.lock
+            vps/hyperv/flake.lock
+            vps/tohu/flake.lock
           retention-days: 1
 
   # ============================================================
-  # 任务 2: Flake 语法和评估检查
+  # 任务 2: 静态构建检查 (确保能编译生成系统)
   # ============================================================
-  check-flake:
-    needs: update-locks
+  check-build:
+    needs: update-vps-locks
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        host: [hyperv, tohu]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -69,8 +69,8 @@ jobs:
       - name: Download updated flake.lock files
         uses: actions/download-artifact@v4
         with:
-          name: flake-locks
-          path: .
+          name: vps-flake-locks
+          path: vps
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
@@ -85,24 +85,20 @@ jobs:
           name: chaotic-nyx
           skipPush: true
 
-      # 检查所有 flake 的语法和评估
-      - name: Check all flakes
-        run: |
-          nix flake check --no-build
-          nix flake check --no-build ./core
-          nix flake check --no-build ./extra/kernel/cachyos
-          nix flake check --no-build ./extra/kernel/cachyos-unstable
+      - name: Build System Toplevel (${{ matrix.host }})
+        # 这一步只编译不运行，确保语法和依赖没问题
+        run: nix build ./vps/${{ matrix.host }}#nixosConfigurations.${{ matrix.host }}.config.system.build.toplevel
 
   # ============================================================
-  # 任务 3: VM 集成测试 (三种内核配置)
+  # 任务 3: VM 集成测试
   # ============================================================
   vm-tests:
-    needs: update-locks
+    needs: update-vps-locks
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        kernel: [xanmod, cachyos, cachyos-unstable]
+        host: [hyperv, tohu]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -110,8 +106,8 @@ jobs:
       - name: Download updated flake.lock files
         uses: actions/download-artifact@v4
         with:
-          name: flake-locks
-          path: .
+          name: vps-flake-locks
+          path: vps
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
@@ -136,18 +132,17 @@ jobs:
           sudo udevadm trigger --name-match=kvm
           ls -la /dev/kvm
 
-      # 运行对应内核的 VM 测试
-      - name: Run VM Test (${{ matrix.kernel }})
+      - name: Run VM Test (${{ matrix.host }})
         run: |
-          echo "Running VM test for kernel: ${{ matrix.kernel }}"
-          nix build -L --print-build-logs .#checks.x86_64-linux.kernel-${{ matrix.kernel }}
+          echo "Running VM test for host: ${{ matrix.host }}"
+          nix build -L --print-build-logs ./vps/${{ matrix.host }}#nixosConfigurations.${{ matrix.host }}.config.system.build.vmTest
 
   # ============================================================
   # 任务 4: 聚合测试结果 (用于 Branch Protection Rule)
   # ============================================================
   ci-success:
     needs: 
-      - check-flake
+      - check-build
       - vm-tests
     runs-on: ubuntu-latest
     if: always()
@@ -158,4 +153,4 @@ jobs:
             echo "One or more jobs failed or were cancelled."
             exit 1
           fi
-          echo "All jobs passed."
+          echo "All VPS hosts tests passed."

@@ -32,6 +32,9 @@ jobs:
     
       - name: Update flake.lock
         run: |
+          nix flake update --flake ./core
+          nix flake update --flake ./extra/kernel/cachyos
+          nix flake update --flake ./extra/kernel/cachyos-unstable
           nix flake update
           nix flake update --flake ./vps/tohu
           nix flake update --flake ./vps/hyperv
