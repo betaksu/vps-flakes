@@ -43,7 +43,7 @@ jobs:
           
           # Commit if there are changes
           if ! git diff-index --quiet HEAD; then
-            git commit -m "chore: update flake.lock from no-lock-update [skip ci]"
+            git commit -m "chore: update flake.lock from no-lock-update"
           fi
           
           # Force push to pre-release to sync it with no-lock-update + lock updates
