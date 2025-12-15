@@ -177,38 +177,52 @@ nix run nixpkgs#mkpasswd -- -m sha-512
 
 ## CI/CD 工作流
 
-本仓库使用多个 GitHub Actions 工作流实现自动化：
+本仓库使用 GitHub Actions 实现高度自动化的 **Cloud-Native GitOps** 流程。
+
+### 🌟 核心特性：动态主机发现 (Dynamic Host Matrix)
+
+所有的 CI/CD 工作流（CI 测试、自动更新、发布构建）都集成了**自动发现机制** (`.github/scripts/get-hosts.sh`)。
+你只需要在 `vps/` 目录下创建一个包含 `flake.nix` 的新文件夹，CI 系统就会自动识别它并将其加入测试和发布队列，**无需修改任何配置文件**。
 
 ### 工作流概览
 
-| 工作流 | 触发条件 | 功能 |
-|--------|---------|------|
-| `ci.yml` | PR 到 main | 检查 core/extra flakes，运行三种内核的 VM 测试 |
-| `vps-hosts-ci.yml` | Push 到 main | 更新 VPS hosts lock，构建检查和 VM 测试，成功后触发 update-flake |
-| `update-flake.yml` | 每日定时 / 被调用 | 更新所有 flake.lock，创建 PR 并自动合并 |
+| 工作流 | 文件 | 触发机制 | 功能描述 |
+|--------|------|----------|----------|
+| **CI / Build & Test** | `ci.yml` | Pull Request | **核心守门员**。检查 Flake 语法，运行多种内核的 VM 测试。同时**自动扫描所有 VPS 主机**，进行静态构建检查和 VM 集成测试。 |
+| **Auto Update** | `auto-update-flake.yml` | 每日定时 / 手动 | 调用 `update-flake.yml`。**遍历更新** Core, Extra 以及 `vps/` 下所有主机的 `flake.lock`。创建 PR 并自动合并。 |
+| **Release Images** | `release.yml` | 手动 (`workflow_dispatch`) | **一键发布**。自动构建 `vps/` 下所有主机的磁盘镜像，并上传到 GitHub Releases。 |
+| **Sync Dev** | `sync-no-lock-update.yml` | Push to `no-lock-update` | **开发辅助**。将不包含 lock 变更的代码同步到 `pre-release` 分支进行先行测试。 |
 
-### 工作流链
+### 自动化流程图 (GitOps Loop)
+
+#### 1. 自动更新循环 (Bleeding Edge)
 
 ```mermaid
-flowchart TD
-    A[Push to main] --> B{commit message 包含<br/>'chore: update flake.lock'?}
-    B -->|是| C[跳过 - 防止死循环]
-    B -->|否| D[vps-hosts-ci.yml]
+graph TD
+    A[每日定时 / Manual] -->|Trigger| B(Auto Update Flake)
+    B --> C{Update Locks}
+    C -->|Core & Kernels| D[Update Root & Extra]
+    C -->|Auto Discovery| E[Update vps/* hosts]
     
-    D --> E[更新 VPS locks]
-    E --> F[构建检查]
-    E --> G[VM 测试]
-    F --> H{全部通过?}
-    G --> H
+    D & E --> F[Create Pull Request]
+    F --> G[CI Checks (Dynamic Matrix)]
+    G -->|Pass| H[Auto Merge]
+    G -->|Fail| I[Notify User]
+```
+
+#### 2. 开发与发布流程
+
+```mermaid
+graph LR
+    A[User Dev] -->|PR| B[CI Checks]
+    B -->|Check Core| C[Flake Check & VM Tests]
+    B -->|Check Hosts| D[VPS Build & Test (All Hosts)]
     
-    H -->|是| I[update-flake.yml]
-    H -->|否| J[CI 失败]
+    C & D -->|All Pass| E[Merge to Main]
     
-    I --> K[更新所有 locks]
-    K --> L[创建 PR]
-    L --> M[自动合并]
-    M --> N["Push 'chore: update flake.lock'"]
-    N --> C
+    E --> F{Need Install Media?}
+    F -->|Yes| G[Trigger 'Release System Images']
+    G --> H[Build All Hosts Images] --> I[GitHub Release]
 ```
 
 ---
