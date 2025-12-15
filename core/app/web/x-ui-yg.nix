@@ -77,7 +77,10 @@ in {
       };
     };
 
-    services.nginx.virtualHosts = mkIf (cfg.domain != null) {
+    # 使用新的 sites 抽象层
+    # 这里不需要指定 SSL 证书路径或 enableACME，nginx.nix 会自动处理
+    # 也不需要再手动允许 UDP 443 端口，nginx.nix 会自动处理
+    core.app.web.nginx.sites = mkIf (cfg.domain != null) {
       "${cfg.domain}" = {
         forceSSL = true;
         enableACME = true;

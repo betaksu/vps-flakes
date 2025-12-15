@@ -77,6 +77,9 @@
             core.app.hysteria = {
               enable = true;
               backend = "podman";
+              # 新增：指定域名，触发 hysteria.nix 的独立 ACME 集成
+              domain = "tohu.hy.shaog.uk";
+              
               portHopping = {
                 enable = true;
                 range = "20000-50000";
@@ -84,10 +87,9 @@
               };
               settings = {
                 listen = ":20000";
-                acme = {
-                  domains = [ "tohu.hy.shaog.uk" ];
-                  email = "shaog@duck.com";
-                };
+                # 移除：不再使用 Hysteria 内置 ACME
+                # acme = { ... }; 
+                
                 bandwidth = {
                   up = "512 mbps";
                   down = "512 mbps";
