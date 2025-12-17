@@ -55,6 +55,34 @@
             enable = true;
             allowReboot = true;
         };
+
+        ###################### 以下是开发环境配置 ######################
+
+        # 启用 nix-ld
+        # 这是在 NixOS 上运行 VS Code Remote Server 的现代标准解决方案
+        programs.nix-ld.enable = true;
+        programs.nix-ld.libraries = with pkgs; [
+            # VS Code Server 需要的一些常见库
+            stdenv.cc.cc
+            zlib
+            openssl
+            glib
+            # ... 其他库通常 nix-ld 会自动处理大部分
+        ];
+
+        # 安装并启用 direnv
+        # 这让系统能识别 .envrc 文件，自动加载 flake 环境
+        programs.direnv = {
+            enable = true;
+            nix-direnv.enable = true; # 启用 nix 集成，速度更快
+        };
+
+        # 确保系统包里有 git (flake 需要)
+        environment.systemPackages = with pkgs; [
+            git
+            vim
+            wget
+        ];
     };
   in
   {
