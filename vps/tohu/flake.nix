@@ -79,7 +79,7 @@
         commonConfig
         
         # 3. 硬件/Host特有配置 (Production)
-        ({ config, pkgs, modulesPath, ... }: {
+        ({ config, pkgs, lib, modulesPath, ... }: {
             networking.hostName = hostConfig.name;
             facter.reportPath = ./facter.json; 
 
@@ -138,12 +138,8 @@
 
             core.hardware.network.single-interface = {
                 enable = true;
-                ipv4 = {
-                    enable = true;
-                    address = hostConfig.ipv4.address;
-                    prefixLength = 24;
-                    gateway = hostConfig.ipv4.gateway;
-                };
+                ipv4 = lib.mkIf (hostConfig ? ipv4) ({ enable = true; } // hostConfig.ipv4);
+                ipv6 = lib.mkIf (hostConfig ? ipv6) ({ enable = true; } // hostConfig.ipv6);
             };
             
             # Auth - 集中引用
