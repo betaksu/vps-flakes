@@ -1,19 +1,108 @@
 # 主机配置详解
 
-本节详细介绍如何配置主机的 `flake.nix` 文件。本仓库推荐使用 **集中式配置 (hostConfig)** 模式，将主机特有的变量提取到文件顶部，方便管理。
+本文档聚焦于 `flake.nix` 中需要修改的关键配置项。
 
-## 场景一：基础配置 (XanMod 内核 + DHCP)
+## 关键配置修改
 
-适用于大多数 VPS 或虚拟机（如 Hyper-V），网络使用 DHCP 自动获取，并使用 XanMod 内核提供更好的性能。
+你需要重点关注 `hostConfig` 区域的修改。
 
-参考模板 (`vps/hyperv/flake.nix`)：
+### 1. 基础信息
+
+```nix
+hostConfig = {
+    name = "<新主机名>"; // 一定和刚才的文件夹名相同
+}
+```
+
+### 2. 认证信息 (Auth)
+
+```nix
+auth = {
+    rootHash = "$6$xxxxxxxx";
+    sshKeys = [ "ssh-ed25519 AAAA..." ];
+};
+```
+
+**配置说明：**
+
+1. **Root 密码 (rootHash)**
+   **一定要修改 rootHash**，运行以下命令生成：
+   ```bash
+   nix run nixpkgs#mkpasswd -- -m sha-512
+   ```
+   将生成的结果填入 `rootHash`。
+
+2. **SSH 公钥 (sshKeys)**
+   将你的 SSH 公钥内容 (通常在 `~/.ssh/id_ed25519.pub`) 添加到 `sshKeys` 列表。
+
+3. **认证模式 (Auth Mode)**
+   你可以在 `core.auth.root` 中配置认证模式（默认为 `default`）。支持以下模式：
+
+   | 模式 | SSH 密码登录 | SSH 密钥登录 | 说明 |
+   |------|-------------|-------------|------|
+   | `default` | ❌ 禁止 | ✅ 允许 | 推荐，最安全 |
+   | `permit_passwd` | ✅ 允许 | ✅ 允许 | 开发/调试用，不安全 |
+
+### 3. 静态 IP 配置
+
+如果需要静态 IP，请配置 `ipv4` 块：
+
+```nix
+# 静态 IP 配置
+      ipv4 = {
+        address = "192.168.1.100";
+        gateway = "192.168.1.1";
+        prefixLength = 24;
+      };
+```
+
+你可以通过在远程主机运行以下脚本来获取当前网络配置，并直接复制结果：
+```bash
+curl -O https://raw.githubusercontent.com/ShaoG-R/nixos-config/refs/heads/main/scripts/check-net.sh && chmod +x check-net.sh && ./check-net.sh 
+```
+
+### 4. 磁盘配置
+
+在远程主机运行 `lsblk` 命令，查看主磁盘是 `vda` 还是 `sda`。
+
+如果是 `vda`，你需要手动修改 `config.core.hardware.disk` 部分：
+
+```nix
+core.hardware.disk = {
+    enable = true;
+    device = "/dev/vda"; // 增加这行，指定设备为 vda
+    swapSize = 2048;
+};
+```
+(如果默认是 `/dev/sda` 且你的设备也是 `sda`，则无需添加 `device` 行)
+
+
+## 内联 VM 测试
+
+我们在配置中包含了一个 `vmTest` 模块。这利用了 NixOS 的测试框架，在构建时启动一个轻量级虚拟机来验证系统能否正常启动。
+
+**运行测试：**
+
+```bash
+nix build .#nixosConfigurations.<新主机名>.config.system.build.vmTest
+```
+
+如果构建成功，说明系统基本配置无误，容器运行环境正常。
+
+---
+
+## 完整配置详解
+
+下面展示完整的 `flake.nix` 配置内容及其详细含义。
 
 ```nix
 {
   description = "My New Host Configuration";
 
   inputs = {
+    # 引用 nixpkgs 仓库，这里使用 unstable-small 分支以减小体积
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    # 引用核心模块库
     lib-core.url = "path:../../core";
     lib-core.inputs.nixpkgs.follows = "nixpkgs";
   };
@@ -24,33 +113,42 @@
 
     # ==========================================
     # Host Configuration (集中配置区域)
+    # 这里的变量会被下方的配置引用
     # ==========================================
     hostConfig = {
-      name = "<新主机名>"; # 主机名
+      name = "<新主机名>"; # 主机名，与文件夹名保持一致
 
       auth = {
-        # 密码 Hash (生成方式见下文)
-        rootHash = "$6$xxxxxxxx";
-        # SSH Keys
-        sshKeys = [ "ssh-ed25519 AAAA..." ];
+        rootHash = "$6$xxxxxxxx"; # Root 密码哈希
+        sshKeys = [ "ssh-ed25519 AAAA..." ]; # SSH 公钥列表
       };
+      
+      # 静态 IP 配置示例 (可选)
+      # ipv4 = {
+      #   address = "1.2.3.4";
+      #   gateway = "1.2.3.1";
+      #   prefixLength = 24;
+      # };
     };
     # ==========================================
 
+    # 定义测试环境的包集合
     testPkgs = import lib-core.inputs.nixpkgs {
       inherit system;
       config.allowUnfree = true;
     };
 
+    # 通用系统配置
     commonConfig = { config, pkgs, ... }: {
         system.stateVersion = "25.11"; 
-        core.base.enable = true;
+        core.base.enable = true; # 启用基础系统配置
         
         # 硬件配置
-        core.hardware.type = "vps";
+        core.hardware.type = "vps"; # 硬件类型
         core.hardware.disk = {
             enable = true;
-            swapSize = 2048;
+            # device = "/dev/vda"; # 如果是 vda 需取消注释并指定
+            swapSize = 2048; # Swap 大小 (MB)
         };
         
         # 性能优化
@@ -73,22 +171,25 @@
       specialArgs = { inputs = lib-core.inputs; };
       modules = [
         lib-core.nixosModules.default
-        lib-core.nixosModules.kernel-xanmod # 引入 XanMod 内核模块
+        lib-core.nixosModules.kernel-xanmod # 默认使用 XanMod 内核
 
         commonConfig
         
-        # 主机特有配置
-        ({ config, pkgs, modulesPath, ... }: {
+        # 主机特有配置块
+        ({ config, pkgs, modulesPath, lib, ... }: {
             networking.hostName = hostConfig.name;
-            facter.reportPath = ./facter.json;
+            facter.reportPath = ./facter.json; # 硬件报告路径
             
-            # 网络配置 (DHCP)
+            # 网络配置 
             core.hardware.network.single-interface = {
                 enable = true;
-                dhcp.enable = true;
+                # 如果定义了 ipv4/ipv6 则使用静态 IP，否则默认 DHCP
+                ipv4 = lib.mkIf (hostConfig ? ipv4) ({ enable = true; } // (hostConfig.ipv4 or {}));
+                ipv6 = lib.mkIf (hostConfig ? ipv6) ({ enable = true; } // (hostConfig.ipv6 or {}));
+                dhcp.enable = lib.mkIf (!(hostConfig ? ipv4)) true;
             };
             
-            # 认证配置
+            # 认证配置应用
             core.auth.root = {
                 mode = "default";
                 initialHashedPassword = hostConfig.auth.rootHash;
@@ -96,7 +197,7 @@
             };
         })
         
-        # 内联 VM 测试
+        # 内联 VM 测试配置
         ({ config, pkgs, ... }: {
           system.build.vmTest = pkgs.testers.nixosTest {
             name = "${hostConfig.name}-inline-test";
@@ -122,165 +223,3 @@
   };
 }
 ```
-
-## 场景二：进阶配置 (CachyOS 内核 + 静态 IP + Web 服务)
-
-适用于高性能需求场景，使用 CachyOS 内核，手动配置静态 IP，并暴露 Web 服务。
-
-参考模板 (`vps/cloudcone/flake.nix`)：
-
-```nix
-{
-  description = "High Performance Host Configuration";
-
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    lib-core.url = "path:../../core";
-    lib-core.inputs.nixpkgs.follows = "nixpkgs";
-    
-    # 引入 CachyOS 内核源 (稳定版或 unstable)
-    cachyos.url = "path:../../extra/kernel/cachyos-unstable";
-    cachyos.inputs.nixpkgs.follows = "nixpkgs";
-  };
-
-  outputs = { self, nixpkgs, lib-core, cachyos, ... }: 
-  let
-    system = "x86_64-linux";
-    
-    # ==========================================
-    # Host Configuration
-    # ==========================================
-    hostConfig = {
-      name = "<新主机名>";
-      domainRoot = "example.com"; # 根域名
-
-      auth = {
-        rootHash = "$6$xxxxxxxx";
-        sshKeys = [ "ssh-ed25519 AAAA..." ];
-      };
-
-      # 静态 IP 配置
-      ipv4 = {
-        address = "192.168.1.100";
-        gateway = "192.168.1.1";
-        prefixLength = 24;
-      };
-    };
-    
-    # 使用 CachyOS 提供的 makeTestPkgs 以包含必要的 chaotic overlay
-    testPkgs = cachyos.lib.makeTestPkgs system;
-    
-    commonConfig = { config, pkgs, ... }: {
-        system.stateVersion = "25.11"; 
-        core.base.enable = true;
-        core.hardware.type = "vps";
-        core.hardware.disk = { enable = true; swapSize = 2048; };
-        
-        core.performance.tuning.enable = true;
-        core.memory.mode = "aggressive";
-        core.container.podman.enable = true;
-        
-        core.base.update = { enable = true; allowReboot = true; };
-    };
-  in
-  {
-    nixosConfigurations.${hostConfig.name} = nixpkgs.lib.nixosSystem {
-      inherit system;
-      specialArgs = { inputs = lib-core.inputs; };
-      modules = [
-        lib-core.nixosModules.default
-        cachyos.nixosModules.default # 使用 CachyOS 模块
-        
-        commonConfig
-        
-        
-        ({ config, pkgs, lib, modulesPath, ... }: {
-            networking.hostName = hostConfig.name;
-            facter.reportPath = ./facter.json; 
-            
-            # 自动配置静态 IP (如果 hostConfig 中定义了 ipv4/ipv6)
-            core.hardware.network.single-interface = {
-                enable = true;
-                ipv4 = lib.mkIf (hostConfig ? ipv4) ({ enable = true; } // (hostConfig.ipv4 or {}));
-                ipv6 = lib.mkIf (hostConfig ? ipv6) ({ enable = true; } // (hostConfig.ipv6 or {}));
-            };
-            
-            # 认证
-            core.auth.root = {
-                mode = "default";
-                initialHashedPassword = hostConfig.auth.rootHash;
-                authorizedKeys = hostConfig.auth.sshKeys or [];
-            };
-
-            # 示例服务：Alist
-            core.app.web.alist = {
-                enable = true;
-                domain = "alist.${hostConfig.name}.${hostConfig.domainRoot}";
-                backend = "podman";
-            };
-        })
-        
-        # 内联测试 (注意 commonConfig 包含了 cachyos 模块引用，需确保测试环境也能访问)
-        ({ config, pkgs, ... }: {
-          system.build.vmTest = pkgs.testers.nixosTest {
-            name = "${hostConfig.name}-inline-test";
-            nodes.machine = { config, lib, ... }: {
-                imports = [ 
-                    lib-core.nixosModules.default 
-                    cachyos.nixosModules.default
-                    commonConfig
-                ];
-                nixpkgs.pkgs = testPkgs;
-                _module.args.inputs = lib-core.inputs;
-                networking.hostName = "${hostConfig.name}-test";
-                core.auth.root.mode = "permit_passwd";
-            };
-            testScript = ''
-              start_all()
-              machine.wait_for_unit("multi-user.target")
-              machine.wait_for_unit("podman.socket")
-            '';
-          };
-        })
-      ];
-    };
-  };
-}
-```
-
-## 认证配置说明
-
-### 生成密码 Hash
-
-在任何安装了 Nix 的机器上运行：
-
-```bash
-nix run nixpkgs#mkpasswd -- -m sha-512
-```
-
-将生成的字符串填入 `hostConfig.auth.rootHash`。
-
-### 添加 SSH 公钥
-
-将你的 SSH 公钥内容 (通常在 `~/.ssh/id_ed25519.pub`) 添加到 `hostConfig.auth.sshKeys` 列表。
-
-### 认证模式
-
-`core.auth.root.mode` 支持以下模式：
-
-| 模式 | SSH 密码登录 | SSH 密钥登录 | 说明 |
-|------|-------------|-------------|------|
-| `default` | ❌ 禁止 | ✅ 允许 | 推荐，最安全 |
-| `permit_passwd` | ✅ 允许 | ✅ 允许 | 开发/调试用，不安全 |
-
-## 内联 VM 测试
-
-我们在配置中包含了一个 `vmTest` 模块。这利用了 NixOS 的测试框架，在构建时启动一个轻量级虚拟机来验证系统能否正常启动。
-
-**运行测试：**
-
-```bash
-nix build .#nixosConfigurations.<新主机名>.config.system.build.vmTest
-```
-
-如果构建成功，说明系统基本配置无误，容器运行环境正常。
