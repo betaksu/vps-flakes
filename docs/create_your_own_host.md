@@ -55,6 +55,8 @@ cd nixos-config
 
 ### 第一步：创建主机目录
 
+注意：主机名 **不允许包含 `_` (下划线)**，因为 ACME 无法申请包含 `_` 的 SSL 证书。可以使用 `-` (连字符) 代替。
+
 ```bash
 # 创建新主机目录
 mkdir -p vps/<新主机名>
@@ -63,12 +65,10 @@ cd vps/<新主机名>
 
 ### 第二步：在远程主机获取必要配置
 
-该步骤首先安装 nix (若不是 nixos)
-然后运行
+使用脚本安装 nix：
 ```bash
-curl -O https://raw.githubusercontent.com/ShaoG-R/nixos-config/refs/heads/main/scripts/check-net.sh && chmod +x check-net.sh && ./check-net.sh 
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install --no-confirm
 ```
-将对应的静态配置复制进 hostConfig 内，对应修改 core.hardware.network.single-interface 部分
 
 #### 生成硬件报告
 
