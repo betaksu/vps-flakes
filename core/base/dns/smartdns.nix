@@ -9,6 +9,18 @@ in {
       default = "none";
       description = "Select SmartDNS mode: 'oversea' for optimized overseas routing, 'china' for split-horizon DNS.";
     };
+    unlock = {
+      servers = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "List of upstream DNS servers for unlocking.";
+      };
+      domains = mkOption {
+        type = types.listOf types.str;
+        default = [];
+        description = "List of domains to be resolved by the unlocking servers.";
+      };
+    };
   };
 
   config = mkIf (cfg.mode != "none") {
@@ -45,6 +57,8 @@ in {
             "8.8.8.8" "8.8.4.4" "2001:4860:4860::8888" "2001:4860:4860::8844"
             "9.9.9.9" "149.112.112.112"
           ];
+          server = map (s: "${s} -group unlock -exclude-default-group") cfg.unlock.servers;
+          nameserver = map (d: "/${d}/unlock") cfg.unlock.domains;
         })
 
         # Mode: China
@@ -59,7 +73,7 @@ in {
             "119.29.29.29 -group china -exclude-default-group"
             "223.5.5.5    -group china -exclude-default-group"
             "180.76.76.76 -group china -exclude-default-group"
-          ];
+          ] ++ (map (s: "${s} -group unlock -exclude-default-group") cfg.unlock.servers);
 
           # Group Global
           server-tls = [
@@ -76,7 +90,7 @@ in {
             "/jd.com/china" "/aliyun.com/china" "/163.com/china"
             "/bilibili.com/china"
             "/apple.com/china" "/icloud.com/china" "/cdn-apple.com/china"
-          ];
+          ] ++ (map (d: "/${d}/unlock") cfg.unlock.domains);
         })
       ];
     };
