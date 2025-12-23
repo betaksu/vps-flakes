@@ -51,6 +51,7 @@
         core.hardware.type = "vps";
         core.hardware.disk = {
             enable = true;
+            device = "/dev/vda";
             swapSize = 2048;
         };
         
