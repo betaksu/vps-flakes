@@ -233,6 +233,7 @@
                 nixpkgs.pkgs = testPkgs;
                 _module.args.inputs = lib-core.inputs;
                 networking.hostName = "${hostConfig.name}-test";
+                core.auth.root.mode = "permit_passwd";
             };
             testScript = ''
               start_all()
