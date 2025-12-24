@@ -110,30 +110,32 @@
             core.app.hysteria = {
               enable = true;
               backend = "podman";
-              # 动态拼接域名: tohu.hy.shaog.uk
-              domain = "${hostConfig.name}.hy.${hostConfig.domainRoot}";
-              
-              portHopping = {
-                enable = true;
-                range = "20000-50000";
-                interface = "eth0"; 
-              };
-              settings = {
-                listen = ":20000";
-                bandwidth = {
-                  up = "512 mbps";
-                  down = "512 mbps";
+              instances."main" = {
+                # 动态拼接域名: tohu.hy.shaog.uk
+                domain = "${hostConfig.name}.hy.${hostConfig.domainRoot}";
+                
+                portHopping = {
+                  enable = true;
+                  range = "20000-50000";
+                  interface = "eth0"; 
                 };
-                auth = {
-                  type = "password";
-                  password = ""; 
+                settings = {
+                  listen = ":20000";
+                  bandwidth = {
+                    up = "512 mbps";
+                    down = "512 mbps";
+                  };
+                  auth = {
+                    type = "password";
+                    password = ""; 
+                  };
+                  outbounds = [
+                    {
+                      name = "default";
+                      type = "direct";
+                    }
+                  ];
                 };
-                outbounds = [
-                  {
-                    name = "default";
-                    type = "direct";
-                  }
-                ];
               };
             };
 
