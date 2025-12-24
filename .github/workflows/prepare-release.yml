@@ -1,0 +1,34 @@
+name: Prepare Release
+
+on:
+  push:
+    branches:
+      - pre-release
+  workflow_dispatch:
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.PAT }}
+          fetch-depth: 0
+
+      - name: Update flake URI to stable
+        run: |
+          sed -i 's|github:ShaoG-R/nixos-config/pre-release|github:ShaoG-R/nixos-config|g' core/base/update.nix
+
+      - name: Commit and Push to release-ready
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add core/base/update.nix
+          git commit -m "chore: prepare release, update flake uri to stable"
+          
+          git push origin HEAD:release-ready --force
