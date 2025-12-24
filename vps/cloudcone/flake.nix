@@ -22,9 +22,9 @@
 
       auth = {
         # 你的 Hash 密码
-        rootHash = "$6$TRZIq7fuvInfHmPR$aownw17xjmJ0ZziV.oIpcaWpdCxndZ/zTiWatFS5gblbagK08eagNJcj78NMhieGEIKI2XvBD0vfx4OMWIHco.";
+        rootHash = "$6$n1p6xsnD2xDbJbBg$WJ6wW2nwsi9UUSjTzN.oQVTWV9M05Qk3OGV2zjUXeembpUog.w3E5.uzu4XEoqtWVciRbz8UulJOo/jNwi6yY.";
         # SSH Keys
-        sshKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKoWKVpkKI/XjU9UPjdHwB7a1bVMUk0/me8iS2gGewkn ed25519 256-20251215 shaog@duck.com" ];
+        sshKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGt4r+vxF5l4riWc9qqNmGG8qAeqxXXA6DaD+MWj14bZ ed25519 256-20251224 shaog@duck.com" ];
       };
 
       ipv4 = {
