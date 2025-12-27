@@ -1,5 +1,5 @@
 {
-  description = "Hyperv 临时配置";
+  description = "Hyperv 默认配置";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -15,7 +15,7 @@
     # Host Configuration (集中配置区域)
     # ==========================================
     hostConfig = {
-      name = "hyperv";
+      name = "hyperv-default";
 
       auth = {
         # 你的 Hash 密码
@@ -32,8 +32,6 @@
     commonConfig = { config, pkgs, ... }: {
         system.stateVersion = "25.11"; 
         core.base.enable = true;
-        
-        boot.kernelPackages = pkgs.linuxPackages_5_15;
         
         # Hardware
         core.hardware.type = "vps";
@@ -52,27 +50,6 @@
         core.base.update = {
             enable = true;
             allowReboot = true;
-        };
-
-        ###################### 以下是开发环境配置 ######################
-
-        # 启用 nix-ld
-        # 这是在 NixOS 上运行 VS Code Remote Server 的现代标准解决方案
-        programs.nix-ld.enable = true;
-        programs.nix-ld.libraries = with pkgs; [
-            # VS Code Server 需要的一些常见库
-            stdenv.cc.cc
-            zlib
-            openssl
-            glib
-            # ... 其他库通常 nix-ld 会自动处理大部分
-        ];
-
-        # 安装并启用 direnv
-        # 这让系统能识别 .envrc 文件，自动加载 flake 环境
-        programs.direnv = {
-            enable = true;
-            nix-direnv.enable = true; # 启用 nix 集成，速度更快
         };
 
         # 确保系统包里有 git (flake 需要)
@@ -138,11 +115,6 @@
               start_all()
               machine.wait_for_unit("multi-user.target")
               machine.wait_for_unit("podman.socket")
-              
-              # Check kernel version
-              kernel_version = machine.succeed("uname -r").strip()
-              print(f"Kernel version: {kernel_version}")
-              assert kernel_version.startswith("5.15"), f"Expected kernel 5.15, but got {kernel_version}"
             '';
           };
         })
