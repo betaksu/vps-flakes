@@ -37,6 +37,8 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
+            extra-substituters = https://attic.xuyh0120.win/lantian https://cache.garnix.io
+            extra-trusted-public-keys = lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc= cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=
             download-buffer-size = 1073741824
 
       # 检查所有 flake 的语法和评估
@@ -64,6 +66,8 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
+            extra-substituters = https://attic.xuyh0120.win/lantian https://cache.garnix.io
+            extra-trusted-public-keys = lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc= cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=
             download-buffer-size = 1073741824
             # 确保 Nix 知道我们可以用 KVM
             system-features = kvm big-parallel nixos-test
@@ -101,6 +105,8 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
+            extra-substituters = https://attic.xuyh0120.win/lantian https://cache.garnix.io
+            extra-trusted-public-keys = lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc= cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=
             download-buffer-size = 1073741824
 
       - name: Build System Toplevel (${{ matrix.host }})
@@ -126,6 +132,8 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
           extra_nix_config: |
+            extra-substituters = https://attic.xuyh0120.win/lantian https://cache.garnix.io
+            extra-trusted-public-keys = lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc= cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g=
             download-buffer-size = 1073741824
             # 确保 Nix 知道我们可以用 KVM
             system-features = kvm big-parallel nixos-test
