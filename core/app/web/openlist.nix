@@ -30,20 +30,19 @@ in {
     networking.firewall.allowedTCPPorts = mkIf (cfg.domain == null) [ 5244 ];
 
     systemd.tmpfiles.rules = [
-      "d /var/lib/openlist 0755 root root -"
+      "d /etc/openlist 0755 root root -"
     ];
 
     virtualisation.oci-containers = {
       backend = cfg.backend;
       containers.openlist = {
         image = "openlistteam/openlist:latest";
+        user = "0:0";
         ports = [ "5244:5244" ];
         volumes = [
-          "/var/lib/openlist:/opt/openlist/data/"
+          "/etc/openlist:/opt/openlist/data/"
         ];
         environment = {
-          PUID = "0";
-          PGID = "0";
           UMASK = "022";
         };
         autoStart = true;
