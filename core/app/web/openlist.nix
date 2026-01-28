@@ -3,7 +3,7 @@ with lib;
 let
   cfg = config.core.app.web.openlist;
 in {
-  options.core.app.web.aopenlistlist = {
+  options.core.app.web.openlist = {
     enable = mkEnableOption "openlist File Listing";
     
     domain = mkOption {
