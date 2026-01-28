@@ -136,7 +136,7 @@ nix build .#checks.x86_64-linux.kernel-cachyos
 | 选项 | 描述 |
 |------|------|
 | `core.app.web.nginx` | Nginx 反向代理 + ACME 自动证书 |
-| `core.app.web.alist` | Alist 文件列表服务 |
+| `core.app.web.openlist` | openlist 文件列表服务 |
 | `core.app.web.x-ui-yg` | X-UI-YG 代理面板 |
 | `core.app.hysteria` | Hysteria 代理服务 (支持 Docker/Podman) |
 

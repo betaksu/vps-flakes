@@ -86,10 +86,10 @@
             hardware.facter.reportPath = ./facter.json; 
 
             # Services: Web Apps
-            core.app.web.alist = {
+            core.app.web.openlist = {
                 enable = true;
-                # 动态拼接域名: alist-colocrossing.betaksu.dpdns.org
-                domain = "alist-${hostConfig.name}.${hostConfig.domainRoot}";
+                # 动态拼接域名: openlist-colocrossing.betaksu.dpdns.org
+                domain = "openlist-${hostConfig.name}.${hostConfig.domainRoot}";
                 backend = "podman";
             };
             
@@ -112,8 +112,8 @@
               backend = "podman";
               # cat /run/hysteria/main/config.yaml 获取 auth 密码
               instances."main" = {
-                # 动态拼接域名: colocrossing-hy.betaksu.dpdns.org
-                domain = "${hostConfig.name}-hy.${hostConfig.domainRoot}";
+                # 动态拼接域名: hy-colocrossing.betaksu.dpdns.org
+                domain = "hy-${hostConfig.name}.${hostConfig.domainRoot}";
                 
                 portHopping = {
                   enable = true;

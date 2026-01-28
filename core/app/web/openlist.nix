@@ -1,15 +1,15 @@
 { config, pkgs, lib, ... }:
 with lib;
 let
-  cfg = config.core.app.web.alist;
+  cfg = config.core.app.web.openlist;
 in {
-  options.core.app.web.alist = {
-    enable = mkEnableOption "Alist File Listing";
+  options.core.app.web.aopenlistlist = {
+    enable = mkEnableOption "openlist File Listing";
     
     domain = mkOption {
       type = types.nullOr types.str;
       default = null;
-      description = "Domain name for Alist (enables Nginx integration)";
+      description = "Domain name for openlist (enables Nginx integration)";
     };
 
     backend = mkOption {
@@ -30,16 +30,16 @@ in {
     networking.firewall.allowedTCPPorts = mkIf (cfg.domain == null) [ 5244 ];
 
     systemd.tmpfiles.rules = [
-      "d /var/lib/alist 0755 root root -"
+      "d /var/lib/openlist 0755 root root -"
     ];
 
     virtualisation.oci-containers = {
       backend = cfg.backend;
-      containers.alist = {
-        image = "xhofe/alist:beta";
+      containers.openlist = {
+        image = "openlistteam/openlist:latest";
         ports = [ "5244:5244" ];
         volumes = [
-          "/var/lib/alist:/opt/alist/data"
+          "/var/lib/openlist:/opt/openlist/data/"
         ];
         environment = {
           PUID = "0";
