@@ -22,9 +22,9 @@
 
       auth = {
         # 你的 Hash 密码
-        rootHash = "$y$j9T$lO5V9EP90ePthkQujy1SS/$9e9TDzgIb1Nn3kPO4IkYVklPR.yqBSMQVIHIz.9fYx3";
+        rootHash = "$6$XRSYJMbS5YLmX0L0$RGFxZNdVBssrpDlCokpg3J5LVITrcDAySYXSW7h8u0l8PGQQSbq5pRJ1Kdn6bCNrt8gnw1rlcX7sc4xjf9HDh/";
         # SSH Keys
-        sshKeys = [ "$y$j9T$lO5V9EP90ePthkQujy1SS/$9e9TDzgIb1Nn3kPO4IkYVklPR.yqBSMQVIHIz.9fYx3" ];
+        sshKeys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJbDA5sx7Co1T1E/Ue7MOn41utpvg/leBaidj3C0/16d betaksu@outlook.com" ];
       };
 
       ipv4 = {
