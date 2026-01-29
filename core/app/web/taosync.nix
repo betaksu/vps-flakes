@@ -1,0 +1,70 @@
+{ config, pkgs, lib, ... }:
+with lib;
+let
+  cfg = config.core.app.web.taosync;
+in {
+  options.core.app.web.taosync = {
+    enable = mkEnableOption "taosync File Listing";
+    
+    domain = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Domain name for taosync (enables Nginx integration)";
+    };
+
+    backend = mkOption {
+      type = types.enum [ "docker" "podman" ];
+      default = "podman";
+      description = "Container backend to use";
+    };
+  };
+
+  config = mkIf cfg.enable {
+    # Ensure backend is enabled
+    core.container.${cfg.backend}.enable = true;
+    
+    # Ensure Nginx core is enabled if domain is set
+    core.app.web.nginx.enable = mkIf (cfg.domain != null) true;
+
+    # 如果没有配置域名，则开放端口直接访问
+    networking.firewall.allowedTCPPorts = mkIf (cfg.domain == null) [ 8023 ];
+
+    systemd.tmpfiles.rules = [
+      "d /etc/taosync 0755 root root -"
+    ];
+
+    virtualisation.oci-containers = {
+      backend = cfg.backend;
+      containers.taosync = {
+        image = "dr34m/tao-sync:latest";
+        user = "0:0";
+        ports = [ "8023:8023" ];
+        volumes = [
+          "/etc/taosync:/app/data"
+        ];
+        environment = {
+          UMASK = "022";
+        };
+        autoStart = true;
+      };
+    };
+
+    # 使用新的 sites 抽象层
+    # 这里不需要指定 SSL 证书路径或 enableACME，nginx.nix 会自动处理
+    # 也不需要再手动允许 UDP 443 端口，nginx.nix 会自动处理
+    core.app.web.nginx.sites = mkIf (cfg.domain != null) {
+      "${cfg.domain}" = {
+        # 启用 HTTP3 和 QUIC
+        http3 = true;
+        quic = true;
+        
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:8023";
+          extraConfig = ''
+            client_max_body_size 0;
+          '';
+        };
+      };
+    };
+  };
+}
