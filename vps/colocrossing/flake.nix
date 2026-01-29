@@ -17,7 +17,7 @@
     # Host Configuration (集中配置区域)
     # ==========================================
     hostConfig = {
-      name = "colocrossing";
+      name = "cc";
       domainRoot = "betaksu.dpdns.org"; # 主域名，用于拼接
 
       auth = {
@@ -90,6 +90,12 @@
                 enable = true;
                 # 动态拼接域名: openlist-colocrossing.betaksu.dpdns.org
                 domain = "openlist-${hostConfig.name}.${hostConfig.domainRoot}";
+                backend = "podman";
+            };
+            core.app.web.taosync = {
+                enable = true;
+                # 动态拼接域名: taosync-colocrossing.betaksu.dpdns.org
+                domain = "taosync-${hostConfig.name}.${hostConfig.domainRoot}";
                 backend = "podman";
             };
             
